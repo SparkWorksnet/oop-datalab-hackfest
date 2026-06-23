@@ -1,0 +1,120 @@
+version: "3.9"
+
+# ============================================================================
+# 6G-DALI / OpenOP Hackfest — Participant EDC
+# ============================================================================
+# Each participant runs this on their laptop. It provides:
+#   - Their own EDC connector (provider + consumer in one)
+#   - A local RustFS for dataset storage
+#   - A PostgreSQL for EDC state
+#
+# Before starting, set PARTICIPANT_NAME and CENTRAL_EDC_HOST:
+#
+#   export PARTICIPANT_NAME=team-alpha
+#   export CENTRAL_EDC_HOST=192.168.1.100
+#   docker compose up -d
+#
+# Catalog UI:  http://localhost:28180/api/catalog
+# Management:  http://localhost:28181/management/v3/...
+# RustFS UI:   http://localhost:9001  (participant-admin / participant-secret-2024)
+# ============================================================================
+
+services:
+
+  # ── PostgreSQL ────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: edc_participant
+      POSTGRES_USER: edc_user
+      POSTGRES_PASSWORD: edc_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edc_user -d edc_participant"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── RustFS (S3-compatible dataset storage) ─────────────────────────────────
+  rustfs:
+    image: rustfs/rustfs:latest
+    command: server /data --console-address ":9001" --address ":9000"
+    environment:
+      RUSTFS_ROOT_USER: participant-admin
+      RUSTFS_ROOT_PASSWORD: participant-secret-2024
+    ports:
+      - "9000:9000"    # S3 API
+      - "9001:9001"    # Console UI
+    volumes:
+      - rustfsdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/health/live || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+
+  # ── RustFS bootstrap (create buckets) ─────────────────────────────────────
+  rustfs-init:
+    image: amazon/aws-cli:latest
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: participant-admin
+      AWS_SECRET_ACCESS_KEY: participant-secret-2024
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: >
+      /bin/sh -c "
+        aws --endpoint-url http://rustfs:9000 s3 mb s3://my-datasets 2>/dev/null || true &&
+        aws --endpoint-url http://rustfs:9000 s3 mb s3://received 2>/dev/null || true &&
+        echo 'Buckets ready: my-datasets, received'
+      "
+
+  # ── Participant EDC Connector ─────────────────────────────────────────────
+  edc:
+    image: ghcr.io/sparkworksnet/6gdali-testbed-connector:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rustfs:
+        condition: service_healthy
+    ports:
+      - "28180:28180"   # Default / Catalog UI
+      - "28181:28181"   # Management API
+      - "28182:28182"   # DSP Protocol
+      - "28183:28183"   # Control
+    environment:
+      # Database
+      EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/edc_participant
+      EDC_DATASOURCE_DEFAULT_USER: edc_user
+      EDC_DATASOURCE_DEFAULT_PASSWORD: edc_password
+      EDC_SQL_SCHEMA_AUTOCREATE: "true"
+      # Connector identity
+      EDC_PARTICIPANT_ID: ${PARTICIPANT_NAME:-participant}
+      EDC_IDS_ID: "urn:connector:${PARTICIPANT_NAME:-participant}"
+      # Web ports
+      WEB_HTTP_PORT: 28180
+      WEB_HTTP_PATH: /api
+      WEB_HTTP_MANAGEMENT_PORT: 28181
+      WEB_HTTP_MANAGEMENT_PATH: /management
+      WEB_HTTP_PROTOCOL_PORT: 28182
+      WEB_HTTP_PROTOCOL_PATH: /protocol
+      WEB_HTTP_CONTROL_PORT: 28183
+      WEB_HTTP_CONTROL_PATH: /control
+      # DSP callback — other connectors reach this one via the participant's IP
+      EDC_DSP_CALLBACK_ADDRESS: http://edc:28182/protocol
+      # CORS
+      EDC_WEB_REST_CORS_ENABLED: "true"
+      EDC_WEB_REST_CORS_ORIGINS: "*"
+      EDC_WEB_REST_CORS_METHODS: "GET,POST,PUT,DELETE,OPTIONS"
+      EDC_WEB_REST_CORS_HEADERS: "origin,content-type,accept,authorization,x-api-key"
+      # Transfer
+      EDC_TRANSFER_PROXY_TOKEN_SIGNER_PRIVATEKEY_ALIAS: private-key
+      EDC_TRANSFER_PROXY_TOKEN_VERIFIER_PUBLICKEY_ALIAS: public-key
+      EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE: 1
+
+volumes:
+  pgdata:
+  rustfsdata:

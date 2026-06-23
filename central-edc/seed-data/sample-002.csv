@@ -1,0 +1,13 @@
+timestamp,kpi_name,value,unit,slice_id,location
+2024-06-01T00:00:00Z,e2e_latency,4.2,ms,slice-urllc-01,lab-a
+2024-06-01T00:00:00Z,packet_loss_rate,0.001,percent,slice-urllc-01,lab-a
+2024-06-01T00:00:00Z,availability,99.9997,percent,slice-urllc-01,lab-a
+2024-06-01T00:00:00Z,jitter,0.3,ms,slice-urllc-01,lab-a
+2024-06-01T00:01:00Z,e2e_latency,4.5,ms,slice-urllc-01,lab-a
+2024-06-01T00:01:00Z,packet_loss_rate,0.002,percent,slice-urllc-01,lab-a
+2024-06-01T00:01:00Z,availability,99.9995,percent,slice-urllc-01,lab-a
+2024-06-01T00:01:00Z,jitter,0.4,ms,slice-urllc-01,lab-a
+2024-06-01T00:02:00Z,e2e_latency,3.9,ms,slice-embb-01,lab-b
+2024-06-01T00:02:00Z,packet_loss_rate,0.005,percent,slice-embb-01,lab-b
+2024-06-01T00:02:00Z,availability,99.998,percent,slice-embb-01,lab-b
+2024-06-01T00:02:00Z,jitter,0.5,ms,slice-embb-01,lab-b

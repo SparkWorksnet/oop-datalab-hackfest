@@ -1,0 +1,119 @@
+version: "3.9"
+
+# ============================================================================
+# 6G-DALI / OpenOP Hackfest — Central EDC
+# ============================================================================
+# This runs once at the hackfest venue. It hosts the shared catalogue with
+# sample datasets that participants will pull from their own connectors.
+#
+# Start:  docker compose up -d
+# UI:     http://<HOST>:18180/api/catalog
+# Mgmt:   http://<HOST>:18181/management/v3/...
+# DSP:    http://<HOST>:18182/protocol
+# RustFS: http://<HOST>:9001  (central-admin / central-secret-2024)
+# ============================================================================
+
+services:
+
+  # ── PostgreSQL for EDC persistence ────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: edc_provider
+      POSTGRES_USER: edc_user
+      POSTGRES_PASSWORD: edc_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edc_user -d edc_provider"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── RustFS (S3-compatible dataset storage) ────────────────────────────────
+  rustfs:
+    image: rustfs/rustfs:latest
+    command: server /data --console-address ":9001" --address ":9000"
+    environment:
+      RUSTFS_ROOT_USER: central-admin
+      RUSTFS_ROOT_PASSWORD: central-secret-2024
+    ports:
+      - "9000:9000"    # S3 API
+      - "9001:9001"    # Console UI
+    volumes:
+      - rustfsdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/minio/health/live || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+
+  # ── RustFS bootstrap (create bucket + upload sample data) ─────────────────
+  rustfs-init:
+    image: amazon/aws-cli:latest
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: central-admin
+      AWS_SECRET_ACCESS_KEY: central-secret-2024
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: >
+      /bin/sh -c "
+        aws --endpoint-url http://rustfs:9000 s3 mb s3://central-datasets 2>/dev/null || true &&
+        echo 'Bucket central-datasets ready.';
+        if [ -d /seed-data ] && [ \"$$(ls -A /seed-data 2>/dev/null)\" ]; then
+          aws --endpoint-url http://rustfs:9000 s3 cp --recursive /seed-data/ s3://central-datasets/ &&
+          echo 'Seed data uploaded.';
+        fi
+      "
+    volumes:
+      - ./seed-data:/seed-data:ro
+
+  # ── Central EDC Connector ─────────────────────────────────────────────────
+  edc-central:
+    image: ghcr.io/sparkworksnet/6gdali-testbed-connector:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rustfs:
+        condition: service_healthy
+    ports:
+      - "18180:18180"   # Default / Catalog UI
+      - "18181:18181"   # Management API
+      - "18182:18182"   # DSP Protocol
+      - "18183:18183"   # Control
+    environment:
+      # Database
+      EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/edc_provider
+      EDC_DATASOURCE_DEFAULT_USER: edc_user
+      EDC_DATASOURCE_DEFAULT_PASSWORD: edc_password
+      EDC_SQL_SCHEMA_AUTOCREATE: "true"
+      # Connector identity
+      EDC_PARTICIPANT_ID: hackfest-central
+      EDC_IDS_ID: "urn:connector:hackfest-central"
+      # Web ports
+      WEB_HTTP_PORT: 18180
+      WEB_HTTP_PATH: /api
+      WEB_HTTP_MANAGEMENT_PORT: 18181
+      WEB_HTTP_MANAGEMENT_PATH: /management
+      WEB_HTTP_PROTOCOL_PORT: 18182
+      WEB_HTTP_PROTOCOL_PATH: /protocol
+      WEB_HTTP_CONTROL_PORT: 18183
+      WEB_HTTP_CONTROL_PATH: /control
+      # DSP callback — participants reach this connector via the host IP
+      EDC_DSP_CALLBACK_ADDRESS: http://edc-central:18182/protocol
+      # CORS
+      EDC_WEB_REST_CORS_ENABLED: "true"
+      EDC_WEB_REST_CORS_ORIGINS: "*"
+      EDC_WEB_REST_CORS_METHODS: "GET,POST,PUT,DELETE,OPTIONS"
+      EDC_WEB_REST_CORS_HEADERS: "origin,content-type,accept,authorization,x-api-key"
+      # Transfer
+      EDC_TRANSFER_PROXY_TOKEN_SIGNER_PRIVATEKEY_ALIAS: private-key
+      EDC_TRANSFER_PROXY_TOKEN_VERIFIER_PUBLICKEY_ALIAS: public-key
+      EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE: 1
+
+volumes:
+  pgdata:
+  rustfsdata:
