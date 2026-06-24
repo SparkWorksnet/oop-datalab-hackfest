@@ -122,10 +122,11 @@ Participants will deploy the Data Lab module locally, explore the APIs and Catal
 | Task | Tool | What you will learn |
 |------|------|---------------------|
 | [Task 1 — Register a dataset](tasks/task-01-register.md) | `task_local_01-register.py` | Upload data to S3, register an EDC asset with MAP metadata, create policies and contracts, verify in the Catalog UI |
+| [Task 3 — Bring your own data](tasks/task-03-bring-your-own-data.md) | Catalog UI: Submit Dataset | Use the built-in submission portal to upload your own CSV, configure metadata and quality checks, register on EDC |
 
-**Topics covered:** Data Lab architecture, data and model catalogues, asset discovery, metadata and governance concepts, Catalog UI.
+**Topics covered:** Data Lab architecture, data and model catalogues, asset discovery, metadata and governance concepts, Catalog UI, Dataset Submission Portal.
 
-**Expected outcomes:** Run Data Lab locally, register and discover data assets, understand how data assets become first-class entities within OpenOP.
+**Expected outcomes:** Run Data Lab locally, register and discover data assets, submit datasets via the web portal with quality checks, understand how data assets become first-class entities within OpenOP.
 
 ---
 
@@ -138,7 +139,6 @@ The Hackfest provides a pre-configured federation: a central EDC representing a 
 | Task | Tool | What you will learn |
 |------|------|---------------------|
 | [Task 2 — Pull, process, push](tasks/task-02-pull-process-push.md) | `task_local_02-pull-process-push.py` | Contract negotiation, presigned URL transfer, data augmentation, derived asset registration with provenance |
-| [Task 3 — Bring your own data](tasks/task-03-bring-your-own-data.md) | `submit-dataset.html` | Submit your own dataset via the web portal with MAP metadata, upload to S3, register on EDC |
 | [Task 4 — Pull from central EDC](tasks/task-04-pull-central.md) | `task_central_04-pull.py` | Cross-domain catalogue discovery, inter-connector negotiation, cross-network data transfer |
 | [Task 5 — Peer-to-peer exchange](tasks/task-05-peer-exchange.md) | `task_peer_05-discover-exchange.py` | Browse another participant's catalogue, negotiate and pull their dataset |
 
