@@ -14,9 +14,9 @@ version: "3.9"
 #   export CENTRAL_EDC_HOST=192.168.1.100
 #   docker compose up -d
 #
-# Catalog UI:  http://localhost:28180/api/catalog
-# Management:  http://localhost:28181/management/v3/...
-# RustFS UI:   http://localhost:9001  (participant-admin / participant-secret-2024)
+# Catalog UI:  http://localhost:21000/api/catalog
+# Management:  http://localhost:21001/management/v3/...
+# RustFS UI:   http://localhost:21005  (participant-admin / participant-secret-2024)
 # ============================================================================
 
 services:
@@ -44,8 +44,8 @@ services:
       RUSTFS_ROOT_USER: participant-admin
       RUSTFS_ROOT_PASSWORD: participant-secret-2024
     ports:
-      - "9000:9000"    # S3 API
-      - "9001:9001"    # Console UI
+      - "21004:9000"   # S3 API
+      - "21005:9001"   # Console UI
     volumes:
       - rustfsdata:/data
     healthcheck:
@@ -81,10 +81,10 @@ services:
       rustfs:
         condition: service_healthy
     ports:
-      - "28180:28180"   # Default / Catalog UI
-      - "28181:28181"   # Management API
-      - "28182:28182"   # DSP Protocol
-      - "28183:28183"   # Control
+      - "21000:21000"   # Default / Catalog UI
+      - "21001:21001"   # Management API
+      - "21002:21002"   # DSP Protocol
+      - "21003:21003"   # Control
     environment:
       # Database
       EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/edc_participant
@@ -95,16 +95,16 @@ services:
       EDC_PARTICIPANT_ID: ${PARTICIPANT_NAME:-participant}
       EDC_IDS_ID: "urn:connector:${PARTICIPANT_NAME:-participant}"
       # Web ports
-      WEB_HTTP_PORT: 28180
+      WEB_HTTP_PORT: 21000
       WEB_HTTP_PATH: /api
-      WEB_HTTP_MANAGEMENT_PORT: 28181
+      WEB_HTTP_MANAGEMENT_PORT: 21001
       WEB_HTTP_MANAGEMENT_PATH: /management
-      WEB_HTTP_PROTOCOL_PORT: 28182
+      WEB_HTTP_PROTOCOL_PORT: 21002
       WEB_HTTP_PROTOCOL_PATH: /protocol
-      WEB_HTTP_CONTROL_PORT: 28183
+      WEB_HTTP_CONTROL_PORT: 21003
       WEB_HTTP_CONTROL_PATH: /control
       # DSP callback — other connectors reach this one via the participant's IP
-      EDC_DSP_CALLBACK_ADDRESS: http://edc:28182/protocol
+      EDC_DSP_CALLBACK_ADDRESS: http://edc:21002/protocol
       # CORS
       EDC_WEB_REST_CORS_ENABLED: "true"
       EDC_WEB_REST_CORS_ORIGINS: "*"

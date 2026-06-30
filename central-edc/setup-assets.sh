@@ -6,7 +6,7 @@
 # ============================================================================
 
 CENTRAL_HOST=${1:-localhost}
-MGMT="http://${CENTRAL_HOST}:18181/management/v3"
+MGMT="http://${CENTRAL_HOST}:20001/management/v3"
 
 echo "=== Setting up central EDC at ${CENTRAL_HOST} ==="
 
@@ -22,7 +22,7 @@ curl -s -X POST "${MGMT}/policydefinitions" \
       "@context": "http://www.w3.org/ns/odrl.jsonld",
       "@type": "Set"
     }
-  }' | jq .
+  }' ; echo
 
 # ── 2. Create contract definition (matches all assets) ─────────────────────
 echo ""
@@ -35,22 +35,44 @@ curl -s -X POST "${MGMT}/contractdefinitions" \
     "accessPolicyId": "open-policy",
     "contractPolicyId": "open-policy",
     "assetsSelector": []
-  }' | jq .
+  }' ; echo
 
 # ── 3. Register sample assets ──────────────────────────────────────────────
 echo ""
 echo "--- Registering sample assets ---"
 
-# Sample dataset 1
+# Sample dataset 1 — 5G NR RAN measurements
 curl -s -X POST "${MGMT}/assets" \
   -H "Content-Type: application/json" \
   -d '{
     "@context": {"@vocab": "https://w3id.org/edc/v0.0.1/ns/"},
     "@id": "hackfest-sample-001",
     "properties": {
-      "name": "Sample 5G Measurement Dataset",
+      "name": "5G NR RAN Measurement Dataset",
       "contenttype": "text/csv",
-      "description": "Sample 5G NR measurement data for the hackfest"
+      "dct.description": "Per-cell 5G NR downlink and uplink throughput, latency, RSRP, SINR and connected UE count measurements from a lab testbed.",
+      "dct.issued": "2024-06-01",
+      "dct.publisher": "OpenOP Hackfest",
+      "dct.license": "https://creativecommons.org/licenses/by/4.0/",
+      "dct.accessRights": "http://publications.europa.eu/resource/authority/access-right/PUBLIC",
+      "dcat.keyword": "5G NR, RAN, throughput, latency, RSRP, SINR, measurement",
+      "adms.version": "1.0",
+      "dali.snsProjectName": "6G-DALI",
+      "dali.gdprCompliant": "true",
+      "dali.fairCompliant": "true",
+      "dali.environment": "indoors",
+      "dali.networkDomain": "RAN",
+      "dali.ran3gppRelease": "Release 17",
+      "dali.ranNewRadioType": "NR-SA",
+      "dali.ranCoverageType": "Single_Micro",
+      "dali.ranFrequencyBand": "n78",
+      "dali.ranBandwidthMHz": "100",
+      "dali.ranMobilityModel": "static",
+      "dali.observationPointHorizontal": "End device to Access",
+      "dali.observationPointVertical": "Radio Level",
+      "dali.measurementFamily": "DRB",
+      "dali.measurementTool": "Prometheus exporter",
+      "schema.variableMeasured": "throughput_dl_mbps, throughput_ul_mbps, latency_ms, rsrp_dbm, sinr_db, connected_ues"
     },
     "dataAddress": {
       "type": "MinioAsset",
@@ -60,18 +82,37 @@ curl -s -X POST "${MGMT}/assets" \
       "secretKey": "central-secret-2024",
       "prefix": "sample-001.csv"
     }
-  }' | jq .
+  }' ; echo
 
-# Sample dataset 2
+# Sample dataset 2 — Network slice KPI measurements
 curl -s -X POST "${MGMT}/assets" \
   -H "Content-Type: application/json" \
   -d '{
     "@context": {"@vocab": "https://w3id.org/edc/v0.0.1/ns/"},
     "@id": "hackfest-sample-002",
     "properties": {
-      "name": "Sample Network KPI Dataset",
+      "name": "Network Slice KPI Dataset",
       "contenttype": "text/csv",
-      "description": "Sample network KPI data for the hackfest"
+      "dct.description": "End-to-end KPI measurements across URLLC and eMBB network slices including latency, packet loss, availability and jitter.",
+      "dct.issued": "2024-06-01",
+      "dct.publisher": "OpenOP Hackfest",
+      "dct.license": "https://creativecommons.org/licenses/by/4.0/",
+      "dct.accessRights": "http://publications.europa.eu/resource/authority/access-right/PUBLIC",
+      "dcat.keyword": "5G, network slicing, URLLC, eMBB, KPI, latency, packet loss, availability",
+      "adms.version": "1.0",
+      "dali.snsProjectName": "6G-DALI",
+      "dali.gdprCompliant": "true",
+      "dali.fairCompliant": "true",
+      "dali.environment": "indoors",
+      "dali.networkDomain": "E2E",
+      "dali.ran3gppRelease": "Release 17",
+      "dali.ranNewRadioType": "NR-SA",
+      "dali.sliceType": "Multi-slice",
+      "dali.observationPointHorizontal": "E2E Application layer",
+      "dali.observationPointVertical": "Network Layer",
+      "dali.measurementFamily": "RRC",
+      "dali.measurementTool": "Custom KPI collector",
+      "schema.variableMeasured": "e2e_latency, packet_loss_rate, availability, jitter"
     },
     "dataAddress": {
       "type": "MinioAsset",
@@ -81,11 +122,11 @@ curl -s -X POST "${MGMT}/assets" \
       "secretKey": "central-secret-2024",
       "prefix": "sample-002.csv"
     }
-  }' | jq .
+  }' ; echo
 
 echo ""
 echo "=== Central EDC setup complete ==="
-echo "  Catalog UI:  http://${CENTRAL_HOST}:18180/api/catalog"
-echo "  DSP endpoint: http://${CENTRAL_HOST}:18182/protocol"
+echo "  Catalog UI:  http://${CENTRAL_HOST}:20000/api/catalog"
+echo "  DSP endpoint: http://${CENTRAL_HOST}:20002/protocol"
 echo ""
 echo "  Participants should use this DSP address as their counterPartyAddress."

@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """
-Exercise 1 — Register a dataset on your own connector.
+Track 2 · Step 1 — Register a dataset programmatically on your own connector.
 
-Usage: python exercise1_register.py
+The programmatic counterpart to the web-UI registration in Track 1: uploads
+data, creates an asset with metadata, sets up access policies, then verifies
+the asset in the Catalog UI.
+
+Usage: python tr02_s1_register.py
 
 Configure MY_HOST and other settings in .env before running.
 
@@ -112,6 +116,6 @@ if isinstance(offer, list):
 offer_id = offer["@id"]
 print(f"  Found asset with offer: {offer_id}")
 
-print("\n=== Exercise 1 complete! ===")
+print("\n=== Track 2 registration complete! ===")
 print("  Your asset is registered and visible in the catalogue.")
-print(f"  Check the Catalog UI at {MY_MGMT.replace(':28181', ':28180')}/api/catalog")
+print(f"  Check the Catalog UI at {MY_MGMT.replace(':21001', ':21000')}/api/catalog")

@@ -2,7 +2,7 @@
 
 Submit your own dataset to the data space using the Dataset Submission Portal built into the EDC Catalog UI.
 
-**Tool:** `http://<MY_HOST>:28180/api/catalog/submit` (click **"+ Submit Dataset"** from the Catalog UI header)
+**Tool:** `http://<MY_HOST>:21000/api/catalog/submit` (click **"+ Submit Dataset"** from the Catalog UI header)
 
 ## Prerequisites
 
@@ -11,7 +11,7 @@ Submit your own dataset to the data space using the Dataset Submission Portal bu
 
 ## Run
 
-1. Open your Catalog UI at `http://<MY_HOST>:28180/api/catalog`
+1. Open your Catalog UI at `http://<MY_HOST>:21000/api/catalog`
 2. Click the **"+ Submit Dataset"** button in the header
 3. Follow the 4-step wizard
 
@@ -75,10 +75,10 @@ You can navigate between steps freely by clicking the progress bar.
 
 After submission:
 
-1. Open the **Catalog UI** at `http://<MY_HOST>:28180/api/catalog`
-2. Your dataset should appear in the Assets tab
+1. Open the **Catalog UI** at `http://<MY_HOST>:21000/api/catalog`
+2. Your dataset should appear in the Assets table
 3. Click the asset row to expand its metadata — all fields from the submission form are visible, organised by DCAT-AP, 6G-DALI MAP, and Provenance sections
-4. Check the **RustFS UI** at `http://<MY_HOST>:9001` — the file is in `my-datasets`
+4. Check the **RustFS UI** at `http://<MY_HOST>:21005` — the file is in `my-datasets`
 5. Ask another participant to discover your dataset from their connector (Task 5)
 
 ## What to try next

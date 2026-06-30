@@ -2,7 +2,7 @@
 
 Discover datasets in the central hackfest EDC catalogue, negotiate access, and transfer a dataset to your local RustFS storage.
 
-**Script:** `participant/scripts/task_central_03-pull.py`
+**Script:** `participant/scripts/tr02_s2_pull_central.py`
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ Discover datasets in the central hackfest EDC catalogue, negotiate access, and t
 
 ```bash
 cd participant/scripts
-python task_central_03-pull.py
+python tr02_s2_pull_central.py
 ```
 
 ## What happens
@@ -56,14 +56,14 @@ This is a **cross-network transfer** — the central EDC pushes data directly to
 
 After running:
 
-1. Open your **Catalog UI** at `http://<MY_HOST>:28180/api/catalog`
+1. Open your **Catalog UI** at `http://<MY_HOST>:21000/api/catalog`
 2. Check the **Negotiations** tab — you should see a `FINALIZED` negotiation with `hackfest-central` as the counter party
 3. Check the **Transfers** tab — the transfer should show `COMPLETED`
-4. Open the **RustFS UI** at `http://<MY_HOST>:9001` — the file is in `received/from-central/`
+4. Open the **RustFS UI** at `http://<MY_HOST>:21005` — the file is in `received/from-central/`
 5. Open the central **Catalog UI** at `http://<CENTRAL_HOST>:18180/api/catalog` — the Negotiations tab shows the same negotiation from the provider side
 
 ## What to try next
 
 - Change `ASSET_ID` in the script to pull a different dataset from the central catalogue
 - Run Task 2 on the dataset you just pulled — augment it and register the derived version
-- Browse another participant's catalogue by changing `CENTRAL_PROTOCOL` to their DSP address (`http://<THEIR_IP>:28182/protocol`)
+- Browse another participant's catalogue by changing `CENTRAL_PROTOCOL` to their DSP address (`http://<THEIR_IP>:21002/protocol`)

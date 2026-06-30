@@ -2,7 +2,7 @@
 
 Register a dataset on your own EDC connector with 6G-DALI Metadata Application Profile (MAP) metadata.
 
-**Script:** `participant/scripts/task_local_01-register.py`
+**Script:** `participant/scripts/tr02_s1_register.py`
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ Register a dataset on your own EDC connector with 6G-DALI Metadata Application P
 
 ```bash
 cd participant/scripts
-python task_local_01-register.py
+python tr02_s1_register.py
 ```
 
 ## What happens
@@ -70,11 +70,11 @@ The script queries your own connector's catalogue via the DSP protocol to verify
 
 After running:
 
-1. Open the **Catalog UI** at `http://<MY_HOST>:28180/api/catalog`
-2. The asset should appear in the **Assets** tab
+1. Open the **Catalog UI** at `http://<MY_HOST>:21000/api/catalog`
+2. The asset should appear in the **Assets** table
 3. Click the asset row to expand its 6G-DALI MAP metadata
-4. Check the **Lineage** tab — the asset appears as a source node
-5. Open the **RustFS UI** at `http://<MY_HOST>:9001` — the file is in the `my-datasets` bucket
+4. The asset appears as a `source` node in the unified assets/lineage table
+5. Open the **RustFS UI** at `http://<MY_HOST>:21005` — the file is in the `my-datasets` bucket
 
 ## Re-running
 

@@ -70,10 +70,10 @@ Each run creates a uniquely-named asset (timestamped), so the script can be run 
 
 After running:
 
-1. Open the **Catalog UI** at `http://<MY_HOST>:28180/api/catalog`
-2. Both the original and augmented assets should appear in the **Assets** tab
+1. Open the **Catalog UI** at `http://<MY_HOST>:21000/api/catalog`
+2. Both the original and augmented assets should appear in the **Assets** table
 3. Click the augmented asset to see its provenance metadata
-4. Check the **Lineage** tab — the tree shows `my-measurement` as the root with the augmented asset(s) as derived children
+4. In the assets table the augmented asset(s) appear nested as derived children under the `my-measurement` source row
 5. Open the **RustFS UI** — the augmented CSV is in the `my-datasets` bucket
 6. Click **Download** on the augmented asset to verify the additional columns
 

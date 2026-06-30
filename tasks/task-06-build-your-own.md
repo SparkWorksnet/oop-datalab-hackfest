@@ -17,9 +17,9 @@ Use this as a foundation to build something new.
 
 ### Bring Your Own Dataset
 
-Use `task_local_01-register.py` as a starting point. Edit the script to:
+Use `tr02_s1_register.py` as a starting point. Edit the script to:
 
-- Replace the sample CSV with your own data file (upload via RustFS UI at `http://<MY_HOST>:9001` or `s3.upload_file()`)
+- Replace the sample CSV with your own data file (upload via RustFS UI at `http://<MY_HOST>:21005` or `s3.upload_file()`)
 - Customise the MAP metadata to describe your testbed, environment, and measurement setup
 - Use different `dali.environment`, `dali.networkDomain`, `dali.ranNewRadioType` values to match your data
 
@@ -42,7 +42,7 @@ dataset_a = edc.request_asset("hackfest-sample-001", CENTRAL_PROTOCOL)
 # ... negotiate + transfer ...
 
 # Pull from a peer
-dataset_b = edc.request_asset("their-measurement", f"http://{PEER_IP}:28182/protocol")
+dataset_b = edc.request_asset("their-measurement", f"http://{PEER_IP}:21002/protocol")
 # ... negotiate + transfer ...
 
 # Read both, join, and register the result

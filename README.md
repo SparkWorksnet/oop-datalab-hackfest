@@ -85,11 +85,11 @@ Every dataset registered in the data space carries metadata following the **6G-D
   │   └──────┬──────────┬───────────┬───────────┘        │
   │          │          │           │                     │
   │   Participant A  Participant B  Participant C  ...   │
-  │   ┌────────────┐ ┌────────────┐ ┌────────────┐      │
-  │   │ EDC :28180 │ │ EDC :28180 │ │ EDC :28180 │      │
-  │   │ RustFS:9000│ │ RustFS:9000│ │ RustFS:9000│      │
-  │   │ PG         │ │ PG         │ │ PG         │      │
-  │   └────────────┘ └────────────┘ └────────────┘      │
+  │   ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │
+  │   │ EDC :21000  │ │ EDC :21000  │ │ EDC :21000  │   │
+  │   │ RustFS:21004│ │ RustFS:21004│ │ RustFS:21004│   │
+  │   │ PG          │ │ PG          │ │ PG          │   │
+  │   └─────────────┘ └─────────────┘ └─────────────┘   │
   └──────────────────────────────────────────────────────┘
 ```
 
@@ -113,73 +113,62 @@ Each participant needs:
 
 ## Workshop Tracks
 
-### Track 1 — Getting Started with Data Lab
+### Track 1 — Web UI Operations
 
-**Objective:** Become familiar with the Data Lab architecture and core functionalities.
+**Objective:** Operate in the data space through the Catalog UI — register datasets, browse the federated catalogue, and download data, all without writing code.
 
-Participants will deploy the Data Lab module locally, explore the APIs and Catalog UI, and register their first dataset with rich 6G-DALI metadata.
-
-| Task | Tool | What you will learn |
-|------|------|---------------------|
-| [Task 1 — Register a dataset](tasks/task-01-register.md) | `task_local_01-register.py` | Upload data to S3, register an EDC asset with MAP metadata, create policies and contracts, verify in the Catalog UI |
-| [Task 3 — Bring your own data](tasks/task-03-bring-your-own-data.md) | Catalog UI: Submit Dataset | Use the built-in submission portal to upload your own CSV, configure metadata and quality checks, register on EDC |
-
-**Topics covered:** Data Lab architecture, data and model catalogues, asset discovery, metadata and governance concepts, Catalog UI, Dataset Submission Portal.
-
-**Expected outcomes:** Run Data Lab locally, register and discover data assets, submit datasets via the web portal with quality checks, understand how data assets become first-class entities within OpenOP.
-
----
-
-### Track 2 — Experimenting with Dataspace Capabilities
-
-**Objective:** Experience trusted and governed exchange of data across federated operator environments.
-
-The Hackfest provides a pre-configured federation: a central EDC representing a shared operator domain, plus each participant running their own connector. Participants will publish assets, discover remote catalogues, negotiate contracts, and transfer data across domains.
+The organisers will present the Data Lab components, the Dataspace Protocol, the 6G-DALI Metadata Application Profile, the Catalog UI, and the Dataset Submission Portal. Participants will then deploy their local stack and work through the UI.
 
 | Task | Tool | What you will learn |
 |------|------|---------------------|
-| [Task 2 — Pull, process, push](tasks/task-02-pull-process-push.md) | `task_local_02-pull-process-push.py` | Contract negotiation, presigned URL transfer, data augmentation, derived asset registration with provenance |
-| [Task 4 — Pull from central EDC](tasks/task-04-pull-central.md) | `task_central_04-pull.py` | Cross-domain catalogue discovery, inter-connector negotiation, cross-network data transfer |
-| [Task 5 — Peer-to-peer exchange](tasks/task-05-peer-exchange.md) | `task_peer_05-discover-exchange.py` | Browse another participant's catalogue, negotiate and pull their dataset |
+| [Setup — Participant](tasks/setup-participant.md) | Docker Compose | Deploy your local EDC + RustFS + PostgreSQL stack |
+| [Task 3 — Bring your own data](tasks/task-03-bring-your-own-data.md) | Catalog UI: Submit Dataset | Register a dataset via the 4-step wizard, then browse assets, metadata and lineage, and download datasets from the Catalog UI |
 
-**Topics covered:** Dataspace concepts, federation mechanisms, trusted asset exchange, data governance policies, inter-domain interoperability, sharing of datasets.
+**Topics covered:** Data Lab architecture (EDC, RustFS, DataOps), Catalog UI (assets, metadata, lineage, agreements, negotiations, transfers), Dataset Submission Portal (metadata wizard, file upload, quality checks), catalogue discovery and dataset download.
 
-**Expected outcomes:** Federated sharing of data assets, controlled and trusted data exchange, cross-domain interoperability, dataspace-enabled service ecosystems.
+**Expected outcomes:** Run the Data Lab locally, register a dataset through the web portal, discover and inspect data assets across the federated data space, and download datasets through the Catalog UI.
 
 ---
 
-### Track 3 — Experimenting with DataOps
+### Track 2 — Programmatic Access
 
-**Objective:** Explore how data pipelines can be designed, orchestrated, and executed using DataOps principles within the data space.
+**Objective:** Perform the same data space operations programmatically, via the EDC Management API and Python scripts: register datasets, pull from the central connector, and exchange data with other participants.
 
-Participants will execute data processing workflows that pull data from the data space, transform it, and publish derived datasets back — demonstrating the full DataOps lifecycle.
+Participants will register a dataset via Python, pull a dataset from the central connector, and discover and pull datasets from other participants — all through the Management API.
 
 | Task | Tool | What you will learn |
 |------|------|---------------------|
-| [Task 2 — Pull, process, push](tasks/task-02-pull-process-push.md) | `task_local_02-pull-process-push.py` | Manual DataOps: pull → augment → publish with provenance and lineage tracking |
+| [Task 1 — Register a dataset](tasks/task-01-register.md) | `tr02_s1_register.py` | Programmatic registration: upload to S3, create asset with MAP metadata, create policy and contract |
+| [Task 4 — Pull from central EDC](tasks/task-04-pull-central.md) | `tr02_s2_pull_central.py` | Discover the central catalogue, negotiate a contract, transfer a dataset to your local storage |
+| [Task 5 — Peer-to-peer exchange](tasks/task-05-peer-exchange.md) | `tr02_s3_peer_exchange.py` | Browse another participant's catalogue, negotiate and pull their dataset |
 
-**Topics covered:** DataOps architecture, pipeline orchestration, dataset preparation, data augmentation, provenance tracking, lineage visualisation.
+**Topics covered:** Programmatic asset registration via the Management API, 6G-DALI MAP metadata, catalogue discovery, contract negotiation and data transfer, cross-domain peer-to-peer exchange, policies and governance.
 
-**Expected outcomes:** Understand how data services can be orchestrated, how data pipelines become reusable services, how data preparation can be automated, and how DataOps capabilities integrate naturally with OpenOP.
+**Expected outcomes:** Register datasets via scripts using standardised metadata, pull datasets from the central connector via contract negotiation, and exchange datasets directly with other participants.
 
 ---
 
-### Track 4 — Build Your Own Extensions
+### Track 3 — DataOps and Build Your Own
 
-**Objective:** Go beyond experimentation and actively contribute new functionality.
+**Objective:** Execute data processing workflows and build custom extensions on top of the Data Lab.
 
-Participants are encouraged to bring their own datasets, AI models, and analytics services. Use the Data Lab infrastructure to register, share, and process your own data.
+Participants will run a DataOps pipeline that pulls data, augments it, and publishes derived datasets with provenance metadata. They will then build their own custom pipelines and extensions.
 
-| Task | Guide | What you will do |
-|------|-------|------------------|
+| Task | Tool | What you will learn |
+|------|------|---------------------|
+| [Task 2 — Pull, process, push](tasks/task-02-pull-process-push.md) | `task_local_02-pull-process-push.py` | Full DataOps lifecycle: negotiate → transfer → augment → publish with provenance and lineage |
 | [Task 6 — Build your own extensions](tasks/task-06-build-your-own.md) | Guide | Custom pipelines, multi-source composition, AI features, custom policies |
+
+**Topics covered:** DataOps architecture (pull → process → publish), data augmentation, provenance tracking (PROV-O), dataset lineage visualisation, versioned derived datasets, custom pipeline development.
 
 **Development opportunities:**
 
-- **DataOps Services** — data ingestion, transformation pipelines, quality checks, metadata generation
-- **Dataspace Extensions** — new asset sharing scenarios, enhanced governance policies, multi-domain workflows
-- **AI-Driven Features** — AI-based data cleaning, automated dataset enrichment, AI-assisted metadata generation
-- **Proof-of-Concept Development** — autonomous DataOps workflows, intent-driven data management, cross-domain AI model orchestration
+- **DataOps Services** — data quality checks, feature engineering, aggregation, multi-source joins
+- **Dataspace Extensions** — custom policies, restricted access, multi-domain workflows
+- **AI-Driven Features** — auto-metadata generation, anomaly detection, data summarisation
+- **Proof-of-Concept Development** — autonomous DataOps workflows, intent-driven data management
+
+**Expected outcomes:** Execute pull → process → publish pipelines, track dataset lineage through provenance, produce versioned derived assets, build custom extensions on the Data Lab infrastructure.
 
 **Contributions developed during the Hackfest may become candidates for future integration into OpenOP.**
 
@@ -204,12 +193,12 @@ Participants are encouraged to bring their own datasets, AI models, and analytic
 
 | Service     | Port  | Purpose                      |
 |-------------|-------|------------------------------|
-| EDC UI      | 28180 | Catalog UI at `/api/catalog` |
-| EDC Mgmt    | 28181 | Management API               |
-| EDC DSP     | 28182 | Dataspace Protocol endpoint  |
-| EDC Control | 28183 | Internal control plane       |
-| RustFS API  | 9000  | S3-compatible storage        |
-| RustFS UI   | 9001  | Storage web console          |
+| EDC UI      | 21000 | Catalog UI at `/api/catalog` |
+| EDC Mgmt    | 21001 | Management API               |
+| EDC DSP     | 21002 | Dataspace Protocol endpoint  |
+| EDC Control | 21003 | Internal control plane       |
+| RustFS API  | 21004 | S3-compatible storage        |
+| RustFS UI   | 21005 | Storage web console          |
 
 ### EDC Transfer Types
 
@@ -249,11 +238,11 @@ Consumer                           Provider
 
 ```bash
 # List assets
-curl -X POST http://<MY_HOST>:28181/management/v3/assets/request \
+curl -X POST http://<MY_HOST>:21001/management/v3/assets/request \
   -H "Content-Type: application/json" -d '{}'
 
 # Browse a remote catalogue
-curl -X POST http://<MY_HOST>:28181/management/v3/catalog/request \
+curl -X POST http://<MY_HOST>:21001/management/v3/catalog/request \
   -H "Content-Type: application/json" \
   -d '{
     "@context": {"@vocab": "https://w3id.org/edc/v0.0.1/ns/"},
@@ -262,10 +251,10 @@ curl -X POST http://<MY_HOST>:28181/management/v3/catalog/request \
   }'
 
 # Check negotiation status
-curl http://<MY_HOST>:28181/management/v3/contractnegotiations/<ID>
+curl http://<MY_HOST>:21001/management/v3/contractnegotiations/<ID>
 
 # Check transfer status
-curl http://<MY_HOST>:28181/management/v3/transferprocesses/<ID>
+curl http://<MY_HOST>:21001/management/v3/transferprocesses/<ID>
 ```
 
 ### Troubleshooting
@@ -276,7 +265,7 @@ curl http://<MY_HOST>:28181/management/v3/transferprocesses/<ID>
 | `411 Length Required` | The transfer destination must use `PresignedHttpData` type, not `HttpData`. |
 | `Asset not found in provider catalogue` | The provider has no contract definition. Run `setup-assets.sh` on the central EDC. |
 | `409 Conflict` on asset creation | Asset already exists. Task scripts handle this gracefully — re-run is safe. |
-| Negotiation stuck in `REQUESTED` | Check that both connectors can reach each other's DSP endpoint (port 18182/28182). |
+| Negotiation stuck in `REQUESTED` | Check that both connectors can reach each other's DSP endpoint (central 18182 / participant 21002). |
 | Presigned URL expired | URLs expire after 5 minutes. Re-run the task script. |
 | `UnknownHostException` | The EDC container can't resolve the storage hostname. Ensure RustFS is running on the same Docker network. |
 

@@ -5,7 +5,7 @@ Task 2 — Pull a dataset from your own connector, process it, and push the resu
 Usage: python task_local_02-pull-process-push.py
 
 Configure MY_HOST and other settings in .env before running.
-Run task_local_01-register.py first to register the asset.
+Run tr02_s1_register.py first to register the asset.
 
 Steps:
   1. Negotiate a contract for the asset on your own connector

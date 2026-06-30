@@ -2,7 +2,7 @@
 
 Discover and pull a dataset from another participant's EDC connector.
 
-**Script:** `participant/scripts/task_peer_04-discover-exchange.py`
+**Script:** `participant/scripts/tr02_s3_peer_exchange.py`
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ Discover and pull a dataset from another participant's EDC connector.
 
 ```bash
 cd participant/scripts
-python task_peer_04-discover-exchange.py <PEER_IP>
+python tr02_s3_peer_exchange.py <PEER_IP>
 ```
 
 ## What happens
