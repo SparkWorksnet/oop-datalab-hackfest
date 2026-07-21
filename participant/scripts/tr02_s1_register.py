@@ -17,6 +17,8 @@ Steps:
   4. Query your own catalogue to verify the asset appears
 """
 
+import uuid
+
 import boto3
 from botocore.client import Config
 
@@ -27,6 +29,12 @@ from config import (
 from helpers import EdcClient
 
 SOURCE_BUCKET = "my-datasets"
+
+# A fresh id per run, rather than a fixed "my-measurement" — avoids clashing
+# with an asset from a previous run (create_asset would just skip on a 409)
+# and mirrors how the production DataOps stack assigns each distribution its
+# own asset id instead of reusing one fixed value.
+ASSET_ID = str(uuid.uuid4())
 
 # ── Step 1: Upload a sample CSV to RustFS ───────────────────────────────────
 print("=== Step 1: Upload sample data to RustFS ===")
@@ -48,8 +56,8 @@ print("\n=== Step 2: Register asset on EDC ===")
 edc = EdcClient(MY_MGMT)
 
 result = edc.create_asset(
-    asset_id="my-measurement",
-    name="My 5G Measurement",
+    asset_id=ASSET_ID,
+    name="Some Measurement",
     content_type="text/csv",
     data_address={
         "type": "MinioAsset",
@@ -100,6 +108,7 @@ result = edc.create_asset(
     },
 )
 print(f"  Asset created: {result}")
+print(f"  Asset ID: {ASSET_ID}  (copy this for later steps/tasks)")
 
 # ── Step 3: Create policy + contract definition ────────────────────────────
 print("\n=== Step 3: Create policy + contract ===")
@@ -109,7 +118,7 @@ print("  Policy and contract definition created")
 
 # ── Step 4: Query your own catalogue to verify ─────────────────────────────
 print("\n=== Step 4: Query catalogue ===")
-dataset = edc.request_asset("my-measurement", MY_PROTOCOL)
+dataset = edc.request_asset(ASSET_ID, MY_PROTOCOL)
 offer = dataset["odrl:hasPolicy"]
 if isinstance(offer, list):
     offer = offer[0]
@@ -117,5 +126,7 @@ offer_id = offer["@id"]
 print(f"  Found asset with offer: {offer_id}")
 
 print("\n=== Track 2 registration complete! ===")
-print("  Your asset is registered and visible in the catalogue.")
+print(f"  Your asset '{ASSET_ID}' is registered and visible in the catalogue.")
 print(f"  Check the Catalog UI at {MY_MGMT.replace(':21001', ':21000')}/api/catalog")
+print(f"  Use this asset id in later steps/tasks, e.g. Track 3's pull-process-push:")
+print(f"    python task_local_02-pull-process-push.py {ASSET_ID}")

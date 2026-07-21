@@ -45,7 +45,7 @@ curl -X POST http://<MY_HOST>:21001/management/v3/catalog/request \
   -H "Content-Type: application/json" \
   -d '{
     "@context": {"@vocab": "https://w3id.org/edc/v0.0.1/ns/"},
-    "counterPartyAddress": "http://<CENTRAL_HOST>:18182/protocol",
+    "counterPartyAddress": "http://<CENTRAL_HOST>:20002/protocol",
     "protocol": "dataspace-protocol-http"
   }'
 ```

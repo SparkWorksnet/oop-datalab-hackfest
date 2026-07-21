@@ -78,4 +78,8 @@ After running:
 
 ## Re-running
 
-The script handles existing assets gracefully — if the asset, policy, or contract definition already exist, it skips creation and continues.
+The asset id is a fresh UUID generated each time the script runs (printed at
+the end — copy it for later steps/tasks), so re-running always registers a
+new, distinct asset rather than colliding with a previous run's. The policy
+and contract definition, by contrast, use fixed ids and are handled
+gracefully — if they already exist, the script skips creation and continues.

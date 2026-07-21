@@ -2,7 +2,14 @@
 """
 Task 2 — Pull a dataset from your own connector, process it, and push the results back.
 
-Usage: python task_local_02-pull-process-push.py
+Usage:
+    python task_local_02-pull-process-push.py [ASSET_ID]
+
+    ASSET_ID  Optional. The asset to pull from your own connector's catalogue.
+              Defaults to 'my-measurement'. tr02_s1_register.py now assigns a
+              fresh UUID per run instead of that fixed name — pass the id it
+              printed, e.g.:
+                  python task_local_02-pull-process-push.py <uuid-from-step-1>
 
 Configure MY_HOST and other settings in .env before running.
 Run tr02_s1_register.py first to register the asset.
@@ -16,6 +23,7 @@ Steps:
   6. Register the results as a new derived asset on the EDC
 """
 
+import argparse
 import csv
 import io
 import json
@@ -30,9 +38,19 @@ from config import (
 )
 from helpers import EdcClient
 
+parser = argparse.ArgumentParser(
+    description="Pull a dataset from your own connector, process it, and push the results back."
+)
+parser.add_argument(
+    "asset_id", nargs="?", default="my-measurement",
+    help="Asset to pull (default: my-measurement — the fixed name tr02_s1_register.py "
+         "used before it started assigning a UUID per run)",
+)
+args = parser.parse_args()
+
 DEST_BUCKET = "received"
-ASSET_ID = "my-measurement"
-DEST_KEY = "my-measurement.csv"
+ASSET_ID = args.asset_id
+DEST_KEY = f"{ASSET_ID}.csv"
 
 RUN_TS = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
@@ -116,8 +134,8 @@ for row in augmented_rows[:3]:
 # ── Step 5: Upload augmented dataset to RustFS ─────────────────────────────
 print("\n=== Step 5: Upload augmented dataset to RustFS ===")
 RESULTS_BUCKET = "my-datasets"
-RESULTS_KEY = f"my-measurement-augmented-{RUN_TS}.csv"
-DERIVED_ASSET_ID = f"my-measurement-augmented-{RUN_TS}"
+RESULTS_KEY = f"{ASSET_ID}-augmented-{RUN_TS}.csv"
+DERIVED_ASSET_ID = f"{ASSET_ID}-augmented-{RUN_TS}"
 
 output = io.StringIO()
 writer = csv.DictWriter(output, fieldnames=new_columns)

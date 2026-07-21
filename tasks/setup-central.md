@@ -33,16 +33,16 @@ This creates:
 
 ## Verify
 
-1. Open `http://<CENTRAL_HOST_IP>:18180/api/catalog` — the Catalog UI should show the two sample assets
+1. Open `http://<CENTRAL_HOST_IP>:20000/api/catalog` — the Catalog UI should show the two sample assets
 2. Open `http://<CENTRAL_HOST_IP>:9001` — the RustFS console should show the `central-datasets` bucket with the CSV files (login: `central-admin` / `central-secret-2024`)
 3. Test the DSP endpoint:
 
 ```bash
-curl -X POST http://<CENTRAL_HOST_IP>:18181/management/v3/catalog/request \
+curl -X POST http://<CENTRAL_HOST_IP>:20001/management/v3/catalog/request \
   -H "Content-Type: application/json" \
   -d '{
     "@context": {"@vocab": "https://w3id.org/edc/v0.0.1/ns/"},
-    "counterPartyAddress": "http://<CENTRAL_HOST_IP>:18182/protocol",
+    "counterPartyAddress": "http://<CENTRAL_HOST_IP>:20002/protocol",
     "protocol": "dataspace-protocol-http"
   }'
 ```
@@ -53,10 +53,10 @@ This should return a `dcat:Catalog` with the two datasets.
 
 | Service     | Port  | Purpose                      |
 |-------------|-------|------------------------------|
-| EDC UI      | 18180 | Catalog UI at `/api/catalog` |
-| EDC Mgmt    | 18181 | Management API               |
-| EDC DSP     | 18182 | Dataspace Protocol endpoint  |
-| EDC Control | 18183 | Internal control plane       |
+| EDC UI      | 20000 | Catalog UI at `/api/catalog` |
+| EDC Mgmt    | 20001 | Management API               |
+| EDC DSP     | 20002 | Dataspace Protocol endpoint  |
+| EDC Control | 20003 | Internal control plane       |
 | RustFS API  | 9000  | S3-compatible storage        |
 | RustFS UI   | 9001  | Storage web console          |
 
@@ -73,7 +73,7 @@ aws --endpoint-url http://<CENTRAL_HOST_IP>:9000 s3 cp myfile.csv s3://central-d
 2. Register the asset:
 
 ```bash
-curl -X POST http://<CENTRAL_HOST_IP>:18181/management/v3/assets \
+curl -X POST http://<CENTRAL_HOST_IP>:20001/management/v3/assets \
   -H "Content-Type: application/json" \
   -d '{
     "@context": {"@vocab": "https://w3id.org/edc/v0.0.1/ns/"},

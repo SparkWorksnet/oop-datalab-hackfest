@@ -36,9 +36,14 @@ S3_SECRET = os.environ.get("S3_SECRET", "participant-secret-2024")
 EDC_MGMT_PORT = os.environ.get("EDC_MGMT_PORT", "21001")
 EDC_PROTOCOL_PORT = os.environ.get("EDC_PROTOCOL_PORT", "21002")
 
+# The central connector's own DSP protocol port (see central-edc/docker-compose.yml's
+# WEB_HTTP_PROTOCOL_PORT) — distinct from EDC_PROTOCOL_PORT above, which is this
+# participant's own connector's port.
+CENTRAL_PROTOCOL_PORT = os.environ.get("CENTRAL_PROTOCOL_PORT", "20002")
+
 MY_MGMT = f"http://{MY_HOST}:{EDC_MGMT_PORT}"
 MY_PROTOCOL = f"http://{MY_HOST}:{EDC_PROTOCOL_PORT}/protocol"
 S3_ENDPOINT = f"http://{MY_HOST}:{S3_HOST_PORT}"
 S3_INTERNAL = f"http://rustfs:{S3_INTERNAL_PORT}"
 
-CENTRAL_PROTOCOL = f"http://{CENTRAL_HOST}:18182/protocol"
+CENTRAL_PROTOCOL = f"http://{CENTRAL_HOST}:{CENTRAL_PROTOCOL_PORT}/protocol"

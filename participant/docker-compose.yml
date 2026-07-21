@@ -129,7 +129,7 @@ services:
   # http://edc:21002/protocol) and RustFS (http://rustfs:9000) using the same
   # service names/ports as the scripts in ../scripts.
   airflow:
-    image: apache/airflow:3.1.8
+    image: ghcr.io/sparkworksnet/airflow-base:3.1.8
     # Pin the airflow/airflow login by (re)writing SimpleAuthManager's password
     # file on every start. We write it into the /opt/airflow named volume so it's
     # owned by the in-container airflow user (uid 50000) and SimpleAuthManager can
@@ -149,6 +149,11 @@ services:
       # file below, pins the login to a fixed airflow/airflow instead of
       # the random one it'd otherwise generate for a default "admin" user.
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "airflow:admin"
+      # Without this, dali.datalake.PARTICIPANT_ID always falls back to the
+      # literal "participant" — silently diverging from the edc service's
+      # own EDC_PARTICIPANT_ID above whenever a team sets a custom
+      # PARTICIPANT_NAME, as this file's own header instructs them to.
+      PARTICIPANT_NAME: ${PARTICIPANT_NAME:-participant}
     ports:
       - "21006:8080"   # Airflow UI / REST API
     volumes:

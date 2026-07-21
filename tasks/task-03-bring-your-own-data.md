@@ -23,9 +23,9 @@ Fill in the dataset description:
 
 - **Basic Information** (mandatory) — title, description, publisher, contact, licence, keywords
 - **Dataset Details** (recommended) — temporal coverage, network technology, frequency band, collection method, column names, provenance
-- **Additional Information** (optional) — existing DOI, access rights, related publications, contributors
+- **Additional Information** (optional) — existing DOI, access rights, related publications, contributors, and a required **"contains PII"** declaration
 
-All metadata fields are stored as EDC asset properties following the 6G-DALI MAP naming convention (e.g., `dali.networkDomain`, `dct.description`).
+All of this is bundled into a single `semantic_description` asset property — one structured JSON-LD document, not a separate flat `dct.foo`-style property per field. It carries proper DCAT-AP (`dct:publisher`/`dct:creator` as `foaf:Organization` nodes, `dcat:contactPoint` as a vcard node, `dct:temporal`), 6G-DALI MAP (RAN fields nested under `dali:testbedContext`), GAIA-X (`gax:containsPII`, `gax:producedBy`, `gax:exposedThrough`, `gax:policy`), and PROV-O (`dct:provenance` as a `dct:ProvenanceStatement` with `prov:wasAttributedTo`) structure, plus a `dcat:distribution` node describing the actual file (access/download URLs, format, and — for uploaded files — a SHA-256 checksum computed in your browser before upload).
 
 ### Step 2: Data
 
@@ -77,13 +77,15 @@ After submission:
 
 1. Open the **Catalog UI** at `http://<MY_HOST>:21000/api/catalog`
 2. Your dataset should appear in the Assets table
-3. Click the asset row to expand its metadata — all fields from the submission form are visible, organised by DCAT-AP, 6G-DALI MAP, and Provenance sections
-4. Check the **RustFS UI** at `http://<MY_HOST>:21005` — the file is in `my-datasets`
-5. Ask another participant to discover your dataset from their connector (Task 5)
+3. Click the asset row to expand its metadata — the **Semantic Description (JSON-LD)** block shows the full structured document exactly as submitted
+4. Click **Preview** on your asset's row to check the first rows of your data without downloading it
+5. Check the **RustFS UI** at `http://<MY_HOST>:21005` — the file is in `my-datasets`
+6. Ask another participant to discover your dataset from their connector (Task 5)
 
 ## What to try next
 
 - Submit multiple datasets and see them all in the Catalog UI
 - Run Task 4 (pull from central) or Task 5 (peer exchange) to pull someone else's dataset
-- Use the augmentation pipeline from Task 2 on your own data — register the result as a derived asset with provenance linking back to your submission
+- Use the augmentation pipeline from Task 2 (or its Airflow equivalent, Task 7's `hackfest_process_dataset`) on your own data — register the result as a derived asset with provenance linking back to your submission
+- Run Task 7's `hackfest_validate_dataset` DAG against your asset, then click **Validation** on its row in the Catalog UI to see the Great Expectations report
 - Check the **Lineage** tab after running Task 2 on your data — the tree will show your original dataset as a source node

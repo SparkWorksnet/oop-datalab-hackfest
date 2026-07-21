@@ -49,7 +49,7 @@ A **data space** solves this by providing:
 
 **S3-compatible storage (RustFS)** — datasets are stored as objects in S3 buckets. The EDC reads from and writes to storage using presigned URLs, so S3 credentials never leave the data owner's infrastructure.
 
-**DataOps pipelines** — automated workflows that pull raw data from the data space, run transformations and quality checks, and publish derived datasets back. In the full 6G-DALI deployment this is Apache Airflow; in this hackfest we demonstrate the same flow with Python scripts.
+**DataOps pipelines** — automated workflows that pull raw data from the data space, run transformations and quality checks, and publish derived datasets back. The same flow is demonstrated two ways in this hackfest: as plain Python scripts (Task 2), and as repeatable Apache Airflow DAGs (Task 7) — a lightweight standalone Airflow ships with each participant's stack at `http://<MY_HOST>:21006`.
 
 ### The 6G-DALI Metadata Application Profile (MAP)
 
@@ -74,9 +74,9 @@ Every dataset registered in the data space carries metadata following the **6G-D
   │   Central EDC (hosted once)                          │
   │   ┌──────────────┐  ┌─────────┐  ┌──────────────┐   │
   │   │  EDC          │  │ RustFS  │  │ PostgreSQL   │   │
-  │   │  :18180 UI    │  │ :9000   │  │              │   │
-  │   │  :18181 Mgmt  │  │ :9001   │  │              │   │
-  │   │  :18182 DSP   │  │         │  │              │   │
+  │   │  :20000 UI    │  │ :9000   │  │              │   │
+  │   │  :20001 Mgmt  │  │ :9001   │  │              │   │
+  │   │  :20002 DSP   │  │         │  │              │   │
   │   └──────┬────────┘  └─────────┘  └──────────────┘   │
   │          │ DSP protocol                              │
   │          │                                           │
@@ -124,7 +124,7 @@ The organisers will present the Data Lab components, the Dataspace Protocol, the
 | [Setup — Participant](tasks/setup-participant.md) | Docker Compose | Deploy your local EDC + RustFS + PostgreSQL stack |
 | [Task 3 — Bring your own data](tasks/task-03-bring-your-own-data.md) | Catalog UI: Submit Dataset | Register a dataset via the 4-step wizard, then browse assets, metadata and lineage, and download datasets from the Catalog UI |
 
-**Topics covered:** Data Lab architecture (EDC, RustFS, DataOps), Catalog UI (assets, metadata, lineage, agreements, negotiations, transfers), Dataset Submission Portal (metadata wizard, file upload, quality checks), catalogue discovery and dataset download.
+**Topics covered:** Data Lab architecture (EDC, RustFS, DataOps), Catalog UI (assets, metadata, lineage, agreements, negotiations, transfers, per-asset Preview and Validation buttons), Dataset Submission Portal (metadata wizard, file upload, quality checks, structured JSON-LD dataset description), catalogue discovery and dataset download.
 
 **Expected outcomes:** Run the Data Lab locally, register a dataset through the web portal, discover and inspect data assets across the federated data space, and download datasets through the Catalog UI.
 
@@ -157,9 +157,10 @@ Participants will run a DataOps pipeline that pulls data, augments it, and publi
 | Task | Tool | What you will learn |
 |------|------|---------------------|
 | [Task 2 — Pull, process, push](tasks/task-02-pull-process-push.md) | `task_local_02-pull-process-push.py` | Full DataOps lifecycle: negotiate → transfer → augment → publish with provenance and lineage |
+| [Task 7 — Airflow DataOps DAGs](tasks/task-07-airflow-dataops.md) | Airflow at `:21006` | The same pull/process/validate lifecycle as repeatable, triggerable Airflow DAGs, plus automated Great Expectations quality checks |
 | [Task 6 — Build your own extensions](tasks/task-06-build-your-own.md) | Guide | Custom pipelines, multi-source composition, AI features, custom policies |
 
-**Topics covered:** DataOps architecture (pull → process → publish), data augmentation, provenance tracking (PROV-O), dataset lineage visualisation, versioned derived datasets, custom pipeline development.
+**Topics covered:** DataOps architecture (pull → process → publish), data augmentation, provenance tracking (PROV-O), dataset lineage visualisation, versioned derived datasets, Airflow-based pipeline orchestration, automated data quality validation (Great Expectations), custom pipeline development.
 
 **Development opportunities:**
 
@@ -168,7 +169,7 @@ Participants will run a DataOps pipeline that pulls data, augments it, and publi
 - **AI-Driven Features** — auto-metadata generation, anomaly detection, data summarisation
 - **Proof-of-Concept Development** — autonomous DataOps workflows, intent-driven data management
 
-**Expected outcomes:** Execute pull → process → publish pipelines, track dataset lineage through provenance, produce versioned derived assets, build custom extensions on the Data Lab infrastructure.
+**Expected outcomes:** Execute pull → process → publish pipelines (as scripts and as Airflow DAGs), track dataset lineage through provenance, produce versioned derived assets, validate data quality automatically, build custom extensions on the Data Lab infrastructure.
 
 **Contributions developed during the Hackfest may become candidates for future integration into OpenOP.**
 
@@ -182,10 +183,10 @@ Participants will run a DataOps pipeline that pulls data, augments it, and publi
 
 | Service     | Port  | Purpose                      |
 |-------------|-------|------------------------------|
-| EDC UI      | 18180 | Catalog UI at `/api/catalog` |
-| EDC Mgmt    | 18181 | Management API               |
-| EDC DSP     | 18182 | Dataspace Protocol endpoint  |
-| EDC Control | 18183 | Internal control plane       |
+| EDC UI      | 20000 | Catalog UI at `/api/catalog` |
+| EDC Mgmt    | 20001 | Management API               |
+| EDC DSP     | 20002 | Dataspace Protocol endpoint  |
+| EDC Control | 20003 | Internal control plane       |
 | RustFS API  | 9000  | S3-compatible storage        |
 | RustFS UI   | 9001  | Storage web console          |
 
@@ -246,7 +247,7 @@ curl -X POST http://<MY_HOST>:21001/management/v3/catalog/request \
   -H "Content-Type: application/json" \
   -d '{
     "@context": {"@vocab": "https://w3id.org/edc/v0.0.1/ns/"},
-    "counterPartyAddress": "http://<PROVIDER>:18182/protocol",
+    "counterPartyAddress": "http://<PROVIDER>:20002/protocol",
     "protocol": "dataspace-protocol-http"
   }'
 
@@ -265,7 +266,7 @@ curl http://<MY_HOST>:21001/management/v3/transferprocesses/<ID>
 | `411 Length Required` | The transfer destination must use `PresignedHttpData` type, not `HttpData`. |
 | `Asset not found in provider catalogue` | The provider has no contract definition. Run `setup-assets.sh` on the central EDC. |
 | `409 Conflict` on asset creation | Asset already exists. Task scripts handle this gracefully — re-run is safe. |
-| Negotiation stuck in `REQUESTED` | Check that both connectors can reach each other's DSP endpoint (central 18182 / participant 21002). |
+| Negotiation stuck in `REQUESTED` | Check that both connectors can reach each other's DSP endpoint (central 20002 / participant 21002). |
 | Presigned URL expired | URLs expire after 5 minutes. Re-run the task script. |
 | `UnknownHostException` | The EDC container can't resolve the storage hostname. Ensure RustFS is running on the same Docker network. |
 

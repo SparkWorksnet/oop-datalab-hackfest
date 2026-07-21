@@ -6,21 +6,23 @@ Pull a dataset from your own connector, augment it with derived columns, upload 
 
 ## Prerequisites
 
-- Task 1 completed (asset `my-measurement` registered)
+- Task 1 completed (an asset registered — `tr02_s1_register.py` prints its id, a
+  fresh UUID each run, not the fixed `my-measurement` name it used to)
 - `.env` configured
 
 ## Run
 
 ```bash
 cd participant/scripts
-python task_local_02-pull-process-push.py
+python task_local_02-pull-process-push.py <ASSET_ID_FROM_TASK_1>
+# or, with no argument, defaults to the old fixed id "my-measurement"
 ```
 
 ## What happens
 
 ### Step 1: Negotiate contract
 
-The script queries your connector's catalogue for the `my-measurement` asset, finds the contract offer, and negotiates an agreement. This demonstrates the full DSP contract negotiation flow — even when provider and consumer are the same connector.
+The script queries your connector's catalogue for the given asset id, finds the contract offer, and negotiates an agreement. This demonstrates the full DSP contract negotiation flow — even when provider and consumer are the same connector.
 
 ### Step 2: Generate presigned URL
 
@@ -58,7 +60,7 @@ The augmented file is registered as a new EDC asset with:
 **DCAT-AP metadata** — description, issued date, license, keywords, version (set to the run timestamp)
 
 **Provenance (PROV-O):**
-- `prov.wasDerivedFrom` — links back to the source asset `my-measurement`
+- `prov.wasDerivedFrom` — links back to the source asset id you passed in
 - `prov.wasGeneratedBy` — names the augmentation pipeline
 - `prov.wasAttributedTo` — names the participant
 
@@ -73,10 +75,14 @@ After running:
 1. Open the **Catalog UI** at `http://<MY_HOST>:21000/api/catalog`
 2. Both the original and augmented assets should appear in the **Assets** table
 3. Click the augmented asset to see its provenance metadata
-4. In the assets table the augmented asset(s) appear nested as derived children under the `my-measurement` source row
+4. In the assets table the augmented asset(s) appear nested as derived children under the source asset's row
 5. Open the **RustFS UI** — the augmented CSV is in the `my-datasets` bucket
 6. Click **Download** on the augmented asset to verify the additional columns
 
 ## Re-running
 
 Each run creates a new timestamped asset and file. Previous versions remain in the catalogue and storage. The Lineage tab will show multiple derived assets branching from the same source.
+
+## Airflow equivalent
+
+[Task 7](task-07-airflow-dataops.md)'s `hackfest_process_dataset` DAG does the same pull → augment → publish work, triggered with just `{"asset_id": "..."}` instead of a CLI arg. One deliberate difference: the DAG's derived asset id/key are **fixed** (`<asset_id>-augmented`, no timestamp) rather than timestamped like this script — re-running the DAG overwrites the same derived asset instead of producing a new one each time.

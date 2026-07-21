@@ -60,7 +60,7 @@ After running:
 2. Check the **Negotiations** tab — you should see a `FINALIZED` negotiation with `hackfest-central` as the counter party
 3. Check the **Transfers** tab — the transfer should show `COMPLETED`
 4. Open the **RustFS UI** at `http://<MY_HOST>:21005` — the file is in `received/from-central/`
-5. Open the central **Catalog UI** at `http://<CENTRAL_HOST>:18180/api/catalog` — the Negotiations tab shows the same negotiation from the provider side
+5. Open the central **Catalog UI** at `http://<CENTRAL_HOST>:20000/api/catalog` — the Negotiations tab shows the same negotiation from the provider side
 
 ## What to try next
 

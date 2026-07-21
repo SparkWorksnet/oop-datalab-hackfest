@@ -27,9 +27,9 @@ Then ask other participants to discover and pull your dataset (Task 4).
 
 ### Custom DataOps Pipeline
 
-Use `task_local_02-pull-process-push.py` as a starting point. Replace the augmentation logic with your own processing:
+Use `task_local_02-pull-process-push.py` (or its Airflow equivalent, Task 7's `hackfest_process_dataset`) as a starting point. Replace the augmentation logic with your own processing:
 
-- **Data quality checks** — validate columns, detect outliers, compute completeness scores. Register a quality report JSON as a derived asset.
+- **Data quality checks** — Task 7's `hackfest_validate_dataset` DAG already does this with Great Expectations (validate columns, check row counts, auto-generate checks from `schema.variableMeasured`) and writes the report as JSON next to the source file. Extend it with your own expectation types, or register the report as its own derived asset (it currently isn't — see `dali.datalake.upload_results` and `register_derived_asset` in `airflow/plugins/dali/`) so it shows up as its own row in the Catalog UI.
 - **Feature engineering** — compute rolling averages, percentiles, or statistical summaries. Register the feature set for ML consumption.
 - **Aggregation** — group by cell ID, time window, or slice type. Register the aggregated dataset as a new asset.
 - **Join datasets** — pull from two sources (your own + central or peer), merge them, and register the combined result with `prov.wasDerivedFrom` listing both sources.
@@ -86,7 +86,11 @@ Then create a contract definition that uses this policy instead of the open one.
 
 ## MAP Field Reference
 
-When registering your own assets, use these field prefixes:
+The flat, dotted-prefix fields below are what the Track 2 scripts (`tr02_s1_register.py`, `task_local_02-pull-process-push.py`, and `dali.datalake.register_derived_asset` in the Airflow plugins) still register directly as EDC asset properties — use these prefixes when registering your own assets that way.
+
+The Catalog UI's Submit Dataset portal (Task 3) instead bundles all of this into one structured `semantic_description` JSON-LD document per asset (see Task 3) — if you're extending that portal rather than a script, follow its existing structure (nested `foaf:Organization`/vcard/`dali:testbedContext`/`dct:ProvenanceStatement` nodes) instead of adding new flat dotted keys.
+
+When registering your own assets via script, use these field prefixes:
 
 | Prefix | Fields | Description |
 |--------|--------|-------------|
