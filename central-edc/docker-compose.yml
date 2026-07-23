@@ -10,7 +10,8 @@ version: "3.9"
 # UI:     http://<HOST>:20000/api/catalog
 # Mgmt:   http://<HOST>:20001/management/v3/...
 # DSP:    http://<HOST>:20002/protocol
-# RustFS: http://<HOST>:9001  (central-admin / central-secret-2024)
+# RustFS: http://<HOST>:9001   (central-admin / central-secret-2024)
+# Airflow:http://<HOST>:20006  (airflow / airflow)
 # ============================================================================
 
 services:
@@ -72,7 +73,9 @@ services:
     entrypoint: >
       /bin/sh -c "
         aws --endpoint-url http://rustfs:9000 s3 mb s3://central-datasets 2>/dev/null || true &&
-        echo 'Bucket central-datasets ready.';
+        aws --endpoint-url http://rustfs:9000 s3 mb s3://dataops 2>/dev/null || true &&
+        aws --endpoint-url http://rustfs:9000 s3 mb s3://my-datasets 2>/dev/null || true &&
+        echo 'Buckets ready: central-datasets, dataops, my-datasets';
         if [ -d /seed-data ] && [ \"$$(ls -A /seed-data 2>/dev/null)\" ]; then
           aws --endpoint-url http://rustfs:9000 s3 cp --recursive /seed-data/ s3://central-datasets/ &&
           echo 'Seed data uploaded.';
@@ -129,6 +132,60 @@ services:
       EDC_TRANSFER_PROXY_TOKEN_VERIFIER_PUBLICKEY_ALIAS: public-key
       EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE: 1
 
+  # ── Airflow (lightweight, standalone) ──────────────────────────────────────
+  # The central counterpart to the participant stack's Airflow. It runs the
+  # SAME DataOps DAGs and the same `dali` plugin library — the dags/ and plugins/
+  # directories are bind-mounted straight from ../participant/airflow, so there
+  # is a single source of truth shared by both stacks. The env vars below are the
+  # only difference: they retarget the env-driven `dali` library (see
+  # participant/airflow/plugins/dali/datalake.py) at THIS host's central tools —
+  # the central EDC connector (edc-central:20001 / :20002) and the central RustFS
+  # (rustfs:9000, central-admin creds) — instead of a participant's.
+  #
+  # Runs in `standalone` mode (own SQLite metadata DB + SequentialExecutor,
+  # auto-creates the admin user); see the participant compose for details.
+  airflow:
+    image: ghcr.io/6g-dali/airflow-base:3.1.8
+    depends_on:
+      rustfs:
+        condition: service_healthy
+      edc-central:
+        condition: service_started
+    # Pin the airflow/airflow login by (re)writing SimpleAuthManager's password
+    # file on every start (into the named volume owned by the in-container
+    # airflow user, uid 50000), same as the participant stack.
+    command:
+      - bash
+      - -c
+      - |
+        echo '{"airflow": "airflow"}' > /opt/airflow/simple_auth_manager_passwords.json.generated
+        exec /entrypoint standalone
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "airflow:admin"
+      # ── Retarget the shared `dali` library at the central tools ────────────
+      EDC_MGMT_URL: http://edc-central:20001
+      EDC_PROTOCOL_URL: http://edc-central:20002/protocol
+      PARTICIPANT_ID: hackfest-central
+      S3_ENDPOINT: http://rustfs:9000
+      S3_ACCESS: central-admin
+      S3_SECRET: central-secret-2024
+      DEST_BUCKET: dataops
+    ports:
+      - "20006:8080"   # Airflow UI / REST API
+    volumes:
+      # Shared with the participant stack — single source of truth for DAGs + libs
+      - ../participant/airflow/dags:/opt/airflow/dags
+      - ../participant/airflow/plugins:/opt/airflow/plugins
+      - central-airflow-data:/opt/airflow
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
 volumes:
   pgdata:
   rustfsdata:
+  central-airflow-data:

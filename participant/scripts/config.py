@@ -3,7 +3,10 @@
 import os
 from pathlib import Path
 
-ENV_FILE = Path(__file__).parent / ".env"
+# .env lives in the participant/ dir (one level up from scripts/) so the same
+# file is loaded by both these scripts and docker compose, which auto-loads the
+# .env next to its compose file.
+ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 def _load_env():
     if not ENV_FILE.exists():
@@ -24,6 +27,18 @@ PARTICIPANT_NAME = os.environ.get("PARTICIPANT_NAME", "participant")
 
 CENTRAL_HOST = os.environ.get("CENTRAL_HOST", "192.168.1.100")
 CENTRAL_PARTICIPANT_ID = os.environ.get("CENTRAL_PARTICIPANT_ID", "hackfest-central")
+
+# ── Peer exchange (Task 5) ────────────────────────────────────────────────────
+# The other participant you pull a dataset from. PEER_HOST and PEER_ASSET_ID have
+# no sensible default — they must be provided in the .env (see .env.template);
+# tr02_s3_pull_peer.py checks them and prints instructions if they are missing.
+PEER_HOST = os.environ.get("PEER_HOST")
+PEER_ASSET_ID = os.environ.get("PEER_ASSET_ID")
+# The peer's connector id is normally auto-detected from their catalogue, so it
+# does NOT need to be in .env. PEER_PARTICIPANT_ID is only a fallback override for
+# the rare case the catalogue omits it; the default matches a peer who left
+# PARTICIPANT_NAME unset (connector id "participant").
+PEER_PARTICIPANT_ID = os.environ.get("PEER_PARTICIPANT_ID", "participant")
 
 # Host-published RustFS port (used for access from the laptop). Access from
 # inside the docker network always uses the container port 9000, regardless of

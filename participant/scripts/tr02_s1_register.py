@@ -18,6 +18,7 @@ Steps:
 """
 
 import uuid
+from pathlib import Path
 
 import boto3
 from botocore.client import Config
@@ -26,7 +27,7 @@ from config import (
     MY_MGMT, MY_PROTOCOL,
     S3_ENDPOINT, S3_INTERNAL, S3_ACCESS, S3_SECRET,
 )
-from helpers import EdcClient
+from helpers import EdcClient, build_semantic_description
 
 SOURCE_BUCKET = "my-datasets"
 
@@ -47,17 +48,59 @@ s3 = boto3.client(
     region_name="us-east-1",
 )
 
-sample_csv = "timestamp,throughput_mbps,latency_ms\n2024-01-01T00:00:00Z,150.5,12.3\n2024-01-01T00:01:00Z,148.2,13.1\n2024-01-01T00:02:00Z,152.0,11.8\n"
-s3.put_object(Bucket=SOURCE_BUCKET, Key="my-measurement.csv", Body=sample_csv.encode())
-print(f"  Uploaded my-measurement.csv to {SOURCE_BUCKET}")
+# Load the sample from the bundled seed-data instead of an inline literal,
+# resolved relative to this script so it runs from any working directory.
+CSV_PATH = Path(__file__).resolve().parent / "seed-data" / "file-4.csv"
+OBJECT_KEY = "file-4.csv"
+
+csv_bytes = CSV_PATH.read_bytes()
+s3.put_object(Bucket=SOURCE_BUCKET, Key=OBJECT_KEY, Body=csv_bytes)
+print(f"  Uploaded {OBJECT_KEY} to {SOURCE_BUCKET}")
+
+# Measured variables = the CSV header, kept in sync with the data itself
+# rather than hand-typed, so the validation DAG auto-generates a check per
+# real column.
+columns = csv_bytes.decode().splitlines()[0].split(",")
 
 # ── Step 2: Register the asset on your EDC ──────────────────────────────────
 print("\n=== Step 2: Register asset on EDC ===")
 edc = EdcClient(MY_MGMT)
 
+# Register the metadata the same way the Track 1 Dataset Submission Portal
+# does: a full DCAT-AP / GAIA-X / 6G-DALI MAP JSON-LD document serialized into
+# a single 'semantic_description' string property (with schema:variableMeasured
+# nested on the distribution), instead of many flat dct.*/dali.* EDC properties.
+# This is the shape dali.datalake.fetch_columns_from_asset parses.
+catalog_base = MY_MGMT.replace(":21001", ":21000")
+semantic_description = build_semantic_description(
+    asset_id=ASSET_ID,
+    name="Golang Web Server Performance Measurements",
+    csv_bytes=csv_bytes,
+    columns=columns,
+    protocol_url=MY_PROTOCOL,
+    catalog_base=catalog_base,
+    description="CPU and memory consumption measurements for the Golang web server microservice under varying workloads and configurations, generated on the EURECOM 5G testbed to benchmark cloud-native microservice performance.",
+    keywords=["Kafka", "NGINX", "microservices", "CPU consumption", "cloud-native",
+              "AMF", "containerisation", "network function virtualisation",
+              "performance", "workload", "InfluxDB", "NFV", "memory consumption",
+              "5G core", "benchmarking"],
+    issued="2022-07-19",
+    version="1.0",
+    # This is the Golang distribution of the EURECOM cloud-native benchmarking
+    # dataset (CC BY 4.0, DOI 10.5281/zenodo.6907619), so record its real
+    # publisher/creator/source rather than deriving them from the asset name.
+    extra_dataset={
+        "dct:publisher": {"@type": "foaf:Organization", "foaf:name": "EURECOM",
+                          "foaf:homepage": "https://www.eurecom.fr"},
+        "dct:creator": {"@type": "foaf:Person", "foaf:name": "Nassima Toumi"},
+        "dct:source": "https://doi.org/10.5281/zenodo.6907619",
+        "adms:identifier": "10.5281/zenodo.6907619",
+    },
+)
+
 result = edc.create_asset(
     asset_id=ASSET_ID,
-    name="Some Measurement",
+    name="Golang Web Server Performance Measurements",
     content_type="text/csv",
     data_address={
         "type": "MinioAsset",
@@ -65,47 +108,9 @@ result = edc.create_asset(
         "bucketName": SOURCE_BUCKET,
         "accessKey": S3_ACCESS,
         "secretKey": S3_SECRET,
-        "prefix": "my-measurement.csv",
+        "prefix": OBJECT_KEY,
     },
-    metadata={
-        # ── DCAT-AP core fields ─────────────────────────────────────────
-        "dct.description": "5G NR throughput and latency measurements from a controlled lab environment",
-        "dct.issued": "2024-06-01",
-        "dct.publisher": "Hackfest Team",
-        "dct.license": "https://creativecommons.org/licenses/by/4.0/",
-        "dct.accessRights": "http://publications.europa.eu/resource/authority/access-right/PUBLIC",
-        "dcat.keyword": "5G, NR, throughput, latency, measurement",
-        "dct.language": "http://publications.europa.eu/resource/authority/language/ENG",
-        "adms.version": "1.0",
-        # ── 6G-DALI MAP: project identity ───────────────────────────────
-        "dali.snsProjectName": "6G-DALI",
-        "dali.gdprCompliant": "true",
-        "dali.fairCompliant": "true",
-        # ── 6G-DALI MAP: testbed context ────────────────────────────────
-        "dali.environment": "indoors",
-        "dali.networkDomain": "RAN",
-        "dali.ran3gppRelease": "Release 17",
-        "dali.ranNewRadioType": "NR-SA",
-        "dali.ranSplit": "No-Split",
-        "dali.ranFocusedTechnology": "O-RAN",
-        "dali.ranCoverageType": "Single_Micro",
-        "dali.ranFrequencyBand": "n78",
-        "dali.ranBandwidthMHz": "100",
-        "dali.ranMaxEndDevices": "10",
-        "dali.ranMobilityModel": "static",
-        "dali.coreRelease": "Release 17",
-        "dali.coreSolution": "OpenSource",
-        "dali.transportType": "fiber_optics",
-        "dali.computeOrchestratorType": "Kubernetes",
-        "dali.computeGpuUse": "false",
-        "dali.computeVirtualizationType": "Docker",
-        # ── 6G-DALI MAP: experimentation ────────────────────────────────
-        "dali.observationPointHorizontal": "End device to Access",
-        "dali.observationPointVertical": "Radio Level",
-        "dali.measurementFamily": "DRB",
-        "dali.measurementTool": "Prometheus exporter",
-        "schema.variableMeasured": "Throughput (Mbps), Latency (ms)",
-    },
+    metadata={"semantic_description": semantic_description},
 )
 print(f"  Asset created: {result}")
 print(f"  Asset ID: {ASSET_ID}  (copy this for later steps/tasks)")
@@ -129,4 +134,4 @@ print("\n=== Track 2 registration complete! ===")
 print(f"  Your asset '{ASSET_ID}' is registered and visible in the catalogue.")
 print(f"  Check the Catalog UI at {MY_MGMT.replace(':21001', ':21000')}/api/catalog")
 print(f"  Use this asset id in later steps/tasks, e.g. Track 3's pull-process-push:")
-print(f"    python task_local_02-pull-process-push.py {ASSET_ID}")
+print(f"    python tr02_s5_pull_process_push.py {ASSET_ID}")

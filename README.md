@@ -49,7 +49,7 @@ A **data space** solves this by providing:
 
 **S3-compatible storage (RustFS)** — datasets are stored as objects in S3 buckets. The EDC reads from and writes to storage using presigned URLs, so S3 credentials never leave the data owner's infrastructure.
 
-**DataOps pipelines** — automated workflows that pull raw data from the data space, run transformations and quality checks, and publish derived datasets back. The same flow is demonstrated two ways in this hackfest: as plain Python scripts (Task 2), and as repeatable Apache Airflow DAGs (Task 7) — a lightweight standalone Airflow ships with each participant's stack at `http://<MY_HOST>:21006`.
+**DataOps pipelines** — automated workflows that pull raw data from the data space, run transformations and quality checks, and publish derived datasets back. The same flow is demonstrated two ways in this hackfest: as plain Python scripts (Task 3), and as repeatable Apache Airflow DAGs (Task 4) — a lightweight standalone Airflow ships with each participant's stack at `http://<MY_HOST>:21006`.
 
 ### The 6G-DALI Metadata Application Profile (MAP)
 
@@ -84,12 +84,13 @@ Every dataset registered in the data space carries metadata following the **6G-D
   │   │         LAN / Wi-Fi                     │        │
   │   └──────┬──────────┬───────────┬───────────┘        │
   │          │          │           │                     │
-  │   Participant A  Participant B  Participant C  ...   │
-  │   ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │
-  │   │ EDC :21000  │ │ EDC :21000  │ │ EDC :21000  │   │
-  │   │ RustFS:21004│ │ RustFS:21004│ │ RustFS:21004│   │
-  │   │ PG          │ │ PG          │ │ PG          │   │
-  │   └─────────────┘ └─────────────┘ └─────────────┘   │
+  │   Participant A   Participant B   Participant C  ... │
+  │   ┌──────────────┐┌──────────────┐┌──────────────┐  │
+  │   │ EDC :21000   ││ EDC :21000   ││ EDC :21000   │  │
+  │   │ RustFS :21004││ RustFS :21004││ RustFS :21004│  │
+  │   │ Airflow:21006││ Airflow:21006││ Airflow:21006│  │
+  │   │ PG           ││ PG           ││ PG           │  │
+  │   └──────────────┘└──────────────┘└──────────────┘  │
   └──────────────────────────────────────────────────────┘
 ```
 
@@ -122,7 +123,7 @@ The organisers will present the Data Lab components, the Dataspace Protocol, the
 | Task | Tool | What you will learn |
 |------|------|---------------------|
 | [Setup — Participant](tasks/setup-participant.md) | Docker Compose | Deploy your local EDC + RustFS + PostgreSQL stack |
-| [Task 3 — Bring your own data](tasks/task-03-bring-your-own-data.md) | Catalog UI: Submit Dataset | Register a dataset via the 4-step wizard, then browse assets, metadata and lineage, and download datasets from the Catalog UI |
+| [Task 1 — Bring your own data](tasks/task-01-bring-your-own-data.md) | Catalog UI: Submit Dataset | Register a dataset via the 4-step wizard, then browse assets, metadata and lineage, and download datasets from the Catalog UI |
 
 **Topics covered:** Data Lab architecture (EDC, RustFS, DataOps), Catalog UI (assets, metadata, lineage, agreements, negotiations, transfers, per-asset Preview and Validation buttons), Dataset Submission Portal (metadata wizard, file upload, quality checks, structured JSON-LD dataset description), catalogue discovery and dataset download.
 
@@ -138,9 +139,10 @@ Participants will register a dataset via Python, pull a dataset from the central
 
 | Task | Tool | What you will learn |
 |------|------|---------------------|
-| [Task 1 — Register a dataset](tasks/task-01-register.md) | `tr02_s1_register.py` | Programmatic registration: upload to S3, create asset with MAP metadata, create policy and contract |
-| [Task 4 — Pull from central EDC](tasks/task-04-pull-central.md) | `tr02_s2_pull_central.py` | Discover the central catalogue, negotiate a contract, transfer a dataset to your local storage |
-| [Task 5 — Peer-to-peer exchange](tasks/task-05-peer-exchange.md) | `tr02_s3_peer_exchange.py` | Browse another participant's catalogue, negotiate and pull their dataset |
+| [Task 2 — Register a dataset](tasks/task-02-register.md) | `tr02_s1_register.py` | Programmatic registration: upload to S3, create asset with MAP metadata, create policy and contract |
+| [Task 3 — Pull from central EDC](tasks/task-03-pull.md#from-the-central-edc) | `tr02_s2_pull_central.py` | Discover the central catalogue, negotiate a contract, transfer a dataset to your local storage |
+| [Task 3 — Pull from a peer](tasks/task-03-pull.md#from-a-peer) | `tr02_s3_pull_peer.py` | Browse another participant's catalogue, negotiate and pull their dataset |
+| [Task 3 — Pull from your own connector](tasks/task-03-pull.md#from-your-own-connector-local) | `tr02_s4_pull_local.py` | Self-transfer: negotiate with your own connector and pull one of your assets locally |
 
 **Topics covered:** Programmatic asset registration via the Management API, 6G-DALI MAP metadata, catalogue discovery, contract negotiation and data transfer, cross-domain peer-to-peer exchange, policies and governance.
 
@@ -156,9 +158,9 @@ Participants will run a DataOps pipeline that pulls data, augments it, and publi
 
 | Task | Tool | What you will learn |
 |------|------|---------------------|
-| [Task 2 — Pull, process, push](tasks/task-02-pull-process-push.md) | `task_local_02-pull-process-push.py` | Full DataOps lifecycle: negotiate → transfer → augment → publish with provenance and lineage |
-| [Task 7 — Airflow DataOps DAGs](tasks/task-07-airflow-dataops.md) | Airflow at `:21006` | The same pull/process/validate lifecycle as repeatable, triggerable Airflow DAGs, plus automated Great Expectations quality checks |
-| [Task 6 — Build your own extensions](tasks/task-06-build-your-own.md) | Guide | Custom pipelines, multi-source composition, AI features, custom policies |
+| [Task 3 — Pull, process, push](tasks/task-03-pull.md#pull-process--push-dataops-lifecycle) | `tr02_s5_pull_process_push.py` | Full DataOps lifecycle: negotiate → transfer → augment → publish with provenance and lineage |
+| [Task 4 — Airflow DataOps DAGs](tasks/task-04-airflow-dataops.md) | Airflow at `:21006` | The same pull/process/validate lifecycle as repeatable, triggerable Airflow DAGs, plus automated Great Expectations quality checks |
+| [Task 5 — Build your own extensions](tasks/task-05-build-your-own.md) | Guide | Custom pipelines, multi-source composition, AI features, custom policies |
 
 **Topics covered:** DataOps architecture (pull → process → publish), data augmentation, provenance tracking (PROV-O), dataset lineage visualisation, versioned derived datasets, Airflow-based pipeline orchestration, automated data quality validation (Great Expectations), custom pipeline development.
 

@@ -41,38 +41,37 @@ curl -s -X POST "${MGMT}/contractdefinitions" \
 echo ""
 echo "--- Registering sample assets ---"
 
-# Sample dataset 1 — 5G NR RAN measurements
+# Source dataset (all three distributions):
+#   "Benchmarking on Microservices Configurations and the Impact on the
+#    Performance in Cloud Native Environments" — EURECOM 5G testbed.
+#   Nassima Toumi et al., CC BY 4.0, DOI 10.5281/zenodo.6907619
+#   https://catalogue.dspace.sparkworks.net/datasets/53ba2f86-7f06-4324-b168-4cba63ea1272
+
+# Sample dataset 1 — RabbitMQ (file-1.csv), asset id cfdedca2-998e-46f9-b860-1bbf2aeb6a2f
 curl -s -X POST "${MGMT}/assets" \
   -H "Content-Type: application/json" \
   -d '{
     "@context": {"@vocab": "https://w3id.org/edc/v0.0.1/ns/"},
-    "@id": "hackfest-sample-001",
+    "@id": "cfdedca2-998e-46f9-b860-1bbf2aeb6a2f",
     "properties": {
-      "name": "5G NR RAN Measurement Dataset",
+      "name": "RabbitMQ Performance Measurements",
       "contenttype": "text/csv",
-      "dct.description": "Per-cell 5G NR downlink and uplink throughput, latency, RSRP, SINR and connected UE count measurements from a lab testbed.",
-      "dct.issued": "2024-06-01",
-      "dct.publisher": "OpenOP Hackfest",
+      "dct.description": "CPU and memory consumption measurements for the RabbitMQ (distributed message broker) microservice under varying workloads and configurations, generated on the EURECOM 5G testbed to benchmark cloud-native microservice performance.",
+      "dct.issued": "2022-07-19",
+      "dct.creator": "Nassima Toumi",
+      "dct.publisher": "EURECOM",
       "dct.license": "https://creativecommons.org/licenses/by/4.0/",
       "dct.accessRights": "http://publications.europa.eu/resource/authority/access-right/PUBLIC",
-      "dcat.keyword": "5G NR, RAN, throughput, latency, RSRP, SINR, measurement",
+      "dct.source": "https://doi.org/10.5281/zenodo.6907619",
+      "adms.identifier": "10.5281/zenodo.6907619",
+      "dcat.keyword": "Kafka, NGINX, microservices, CPU consumption, cloud-native, AMF, containerisation, network function virtualisation, performance, workload, InfluxDB, NFV, memory consumption, 5G core, benchmarking",
       "adms.version": "1.0",
       "dali.snsProjectName": "6G-DALI",
       "dali.gdprCompliant": "true",
       "dali.fairCompliant": "true",
-      "dali.environment": "indoors",
-      "dali.networkDomain": "RAN",
-      "dali.ran3gppRelease": "Release 17",
-      "dali.ranNewRadioType": "NR-SA",
-      "dali.ranCoverageType": "Single_Micro",
-      "dali.ranFrequencyBand": "n78",
-      "dali.ranBandwidthMHz": "100",
-      "dali.ranMobilityModel": "static",
-      "dali.observationPointHorizontal": "End device to Access",
-      "dali.observationPointVertical": "Radio Level",
-      "dali.measurementFamily": "DRB",
-      "dali.measurementTool": "Prometheus exporter",
-      "schema.variableMeasured": "throughput_dl_mbps, throughput_ul_mbps, latency_ms, rsrp_dbm, sinr_db, connected_ues"
+      "dali.environment": "cloud",
+      "dali.measurementTool": "EURECOM 5G testbed",
+      "schema.variableMeasured": "time, ram_limit, cpu_limit, ram_usage, cpu_usage, n, min, lat50, lat75, lat95, lat99"
     },
     "dataAddress": {
       "type": "MinioAsset",
@@ -80,39 +79,35 @@ curl -s -X POST "${MGMT}/assets" \
       "bucketName": "central-datasets",
       "accessKey": "central-admin",
       "secretKey": "central-secret-2024",
-      "prefix": "sample-001.csv"
+      "prefix": "file-1.csv"
     }
   }' ; echo
 
-# Sample dataset 2 — Network slice KPI measurements
+# Sample dataset 2 — AMF (file-2.csv), asset id 1aea6aae-19ae-404e-949c-45d9949f3113
 curl -s -X POST "${MGMT}/assets" \
   -H "Content-Type: application/json" \
   -d '{
     "@context": {"@vocab": "https://w3id.org/edc/v0.0.1/ns/"},
-    "@id": "hackfest-sample-002",
+    "@id": "1aea6aae-19ae-404e-949c-45d9949f3113",
     "properties": {
-      "name": "Network Slice KPI Dataset",
+      "name": "AMF Performance Measurements",
       "contenttype": "text/csv",
-      "dct.description": "End-to-end KPI measurements across URLLC and eMBB network slices including latency, packet loss, availability and jitter.",
-      "dct.issued": "2024-06-01",
-      "dct.publisher": "OpenOP Hackfest",
+      "dct.description": "CPU and memory consumption measurements for the AMF (5G Access and Mobility Function) microservice under varying workloads and configurations, generated on the EURECOM 5G testbed to benchmark cloud-native microservice performance.",
+      "dct.issued": "2022-07-19",
+      "dct.creator": "Nassima Toumi",
+      "dct.publisher": "EURECOM",
       "dct.license": "https://creativecommons.org/licenses/by/4.0/",
       "dct.accessRights": "http://publications.europa.eu/resource/authority/access-right/PUBLIC",
-      "dcat.keyword": "5G, network slicing, URLLC, eMBB, KPI, latency, packet loss, availability",
+      "dct.source": "https://doi.org/10.5281/zenodo.6907619",
+      "adms.identifier": "10.5281/zenodo.6907619",
+      "dcat.keyword": "Kafka, NGINX, microservices, CPU consumption, cloud-native, AMF, containerisation, network function virtualisation, performance, workload, InfluxDB, NFV, memory consumption, 5G core, benchmarking",
       "adms.version": "1.0",
       "dali.snsProjectName": "6G-DALI",
       "dali.gdprCompliant": "true",
       "dali.fairCompliant": "true",
-      "dali.environment": "indoors",
-      "dali.networkDomain": "E2E",
-      "dali.ran3gppRelease": "Release 17",
-      "dali.ranNewRadioType": "NR-SA",
-      "dali.sliceType": "Multi-slice",
-      "dali.observationPointHorizontal": "E2E Application layer",
-      "dali.observationPointVertical": "Network Layer",
-      "dali.measurementFamily": "RRC",
-      "dali.measurementTool": "Custom KPI collector",
-      "schema.variableMeasured": "e2e_latency, packet_loss_rate, availability, jitter"
+      "dali.environment": "cloud",
+      "dali.measurementTool": "EURECOM 5G testbed",
+      "schema.variableMeasured": "time, ram_limit, cpu_limit, ram_usage, cpu_usage, n, mean, lat50, lat75, lat80, lat90, lat95, lat98, lat99, lat100"
     },
     "dataAddress": {
       "type": "MinioAsset",
@@ -120,9 +115,13 @@ curl -s -X POST "${MGMT}/assets" \
       "bucketName": "central-datasets",
       "accessKey": "central-admin",
       "secretKey": "central-secret-2024",
-      "prefix": "sample-002.csv"
+      "prefix": "file-2.csv"
     }
   }' ; echo
+
+# Note: the Python web server distribution (file-3.csv) is intentionally not
+# registered here — it is provided to participants to upload themselves via the
+# Dataset Submission Portal (Task 3), from participant/scripts/seed-data/file-3.csv.
 
 echo ""
 echo "=== Central EDC setup complete ==="

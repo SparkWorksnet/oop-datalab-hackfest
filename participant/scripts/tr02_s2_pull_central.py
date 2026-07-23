@@ -9,8 +9,9 @@ Usage:
     python tr02_s2_pull_central.py [ASSET_ID]
 
     ASSET_ID  Optional. The dataset to pull from the central catalogue.
-              Defaults to 'hackfest-sample-001'. Run without an argument first
-              to see what the central connector is offering.
+              Defaults to the central RabbitMQ sample
+              ('cfdedca2-998e-46f9-b860-1bbf2aeb6a2f'). Run without an argument
+              first to see what the central connector is offering.
 
 Configure CENTRAL_HOST and MY_HOST in .env before running.
 
@@ -36,7 +37,8 @@ from config import (
 )
 from helpers import EdcClient
 
-DEFAULT_ASSET_ID = "hackfest-sample-001"
+# Central RabbitMQ sample (see central-edc/setup-assets.sh)
+DEFAULT_ASSET_ID = "cfdedca2-998e-46f9-b860-1bbf2aeb6a2f"
 DEST_BUCKET = "received"
 DEST_PREFIX = "from-central"
 

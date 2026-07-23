@@ -8,11 +8,15 @@ version: "3.9"
 #   - A local RustFS for dataset storage
 #   - A PostgreSQL for EDC state
 #
-# Before starting, set PARTICIPANT_NAME and CENTRAL_EDC_HOST:
+# Configure via participant/.env (copied from .env.template) — compose loads it
+# automatically. In particular set MY_HOST to your machine's LAN IP (the address
+# other connectors use to reach yours; do not use localhost) and PARTICIPANT_NAME
+# to your team name. Then:
 #
-#   export PARTICIPANT_NAME=team-alpha
-#   export CENTRAL_EDC_HOST=192.168.1.100
+#   cp .env.template .env   # then edit .env
 #   docker compose up -d
+#
+# (Shell exports of MY_HOST / PARTICIPANT_NAME still override the .env if set.)
 #
 # Catalog UI:  http://localhost:21000/api/catalog
 # Management:  http://localhost:21001/management/v3/...
@@ -105,8 +109,11 @@ services:
       WEB_HTTP_PROTOCOL_PATH: /protocol
       WEB_HTTP_CONTROL_PORT: 21003
       WEB_HTTP_CONTROL_PATH: /control
-      # DSP callback — other connectors reach this one via the participant's IP
-      EDC_DSP_CALLBACK_ADDRESS: http://edc:21002/protocol
+      # DSP callback — the address this connector advertises to counterparties,
+      # so other participants (and the central EDC) can reach it for negotiation
+      # and transfer. Must be this machine's LAN IP, not the internal "edc"
+      # service name or localhost. Set MY_HOST before `docker compose up`.
+      EDC_DSP_CALLBACK_ADDRESS: http://${MY_HOST:-localhost}:21002/protocol
       # CORS
       EDC_WEB_REST_CORS_ENABLED: "true"
       EDC_WEB_REST_CORS_ORIGINS: "*"

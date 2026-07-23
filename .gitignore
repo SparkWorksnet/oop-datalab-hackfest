@@ -1,0 +1,8 @@
+# Local environment config — contains real IPs / team names, kept per-machine.
+# The tracked .env.template is the shared starting point (see setup docs).
+.env
+!.env.template
+
+# Python
+__pycache__/
+*.py[cod]

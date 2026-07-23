@@ -206,26 +206,85 @@ def download_dataset_edc() -> dict:
     return {"content": content, "asset_title": dest_key}
 
 
+def _local_part(key: str) -> str:
+    """Local part of a JSON-LD key, dropping any prefix or IRI namespace:
+    'schema:variableMeasured', 'https://schema.org/variableMeasured' and the
+    dotted EDC form 'schema.variableMeasured' all reduce to 'variablemeasured'.
+    Splits on ':' and '/' (prefixes/IRIs) as well as '.' (EDC's dotted flat
+    property convention)."""
+    return key.split(":")[-1].split("/")[-1].split(".")[-1].lower()
+
+
+def _find_variable_measured(node) -> str | None:
+    """Recursively search a parsed JSON-LD structure for a *variableMeasured
+    value, wherever it sits (e.g. nested under dcat:distribution). Handles
+    plain-string values and expanded {"@value": "..."} literals; recurses
+    into dicts and lists (a dataset may carry several distributions)."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if _local_part(key) == "variablemeasured":
+                if isinstance(value, dict):
+                    value = value.get("@value", "")
+                if isinstance(value, str) and value.strip():
+                    return value
+            found = _find_variable_measured(value)
+            if found:
+                return found
+    elif isinstance(node, list):
+        for item in node:
+            found = _find_variable_measured(item)
+            if found:
+                return found
+    return None
+
+
 def fetch_columns_from_asset(asset_id: str) -> list[str]:
-    """Auto-generate expectations from schema.variableMeasured, read directly
-    off this connector's own asset properties (see tr02_s1_register.py's
-    metadata dict) — the hackfest's no-piveau equivalent of the production
-    dali.utils.fetch_columns_from_piveau (there's no catalogue record here,
-    just the asset registered on your own connector). A plain function, not
-    a @task — it's called from inside dali.validation.run_expectations'
-    task body, not wired into the DAG's task graph."""
+    """Auto-generate expectations from the dataset's measured-variables list,
+    read directly off this connector's own asset properties — the hackfest's
+    no-piveau equivalent of the production dali.utils.fetch_columns_from_piveau
+    (there's no catalogue record here, just the asset registered on your own
+    connector). A plain function, not a @task — it's called from inside
+    dali.validation.run_expectations' task body, not wired into the DAG's
+    task graph.
+
+    Two registration shapes are supported:
+      - Dataset Submission Portal / Catalog UI: a full DCAT-AP JSON-LD document
+        is packed into a single 'semantic_description' string property, with
+        schema:variableMeasured nested under dcat:distribution.
+      - tr02_s1_register.py script: a flat 'schema.variableMeasured' property
+        (possibly returned bare, prefixed, or as a full IRI by EDC's JSON-LD).
+    In both cases the value is a comma-separated column list."""
     resp = requests.get(f"{EDC_MGMT_URL}/management/v3/assets/{asset_id}", timeout=10)
     resp.raise_for_status()
     props = resp.json().get("properties", {})
-    raw = props.get("schema.variableMeasured", "")
-    return [c.strip() for c in raw.split(",") if c.strip()]
+
+    raw = None
+    for key, value in props.items():
+        local = _local_part(key)
+        if local == "variablemeasured":
+            # Flat property (script registration).
+            if isinstance(value, dict):
+                value = value.get("@value", "")
+            if isinstance(value, str) and value.strip():
+                raw = value
+                break
+        elif local == "semantic_description" and isinstance(value, str):
+            # Portal registration: JSON-LD document as a string property.
+            try:
+                raw = _find_variable_measured(json.loads(value))
+            except (ValueError, TypeError):
+                raw = None
+            if raw:
+                break
+
+    return [c.strip() for c in (raw or "").split(",") if c.strip()]
 
 
 def register_derived_asset(asset_id: str, name: str, content_type: str, bucket: str, key: str, metadata: dict | None = None) -> dict:
     """Register a new asset on this connector, pointing at a file already
     uploaded to RustFS — the hackfest's plain-function equivalent of
     scripts/helpers.py's EdcClient.create_asset (see tr02_s1_register.py and
-    task_local_02-pull-process-push.py's Step 6), reused here so a DAG can
+    tr02_s5_pull_process_push.py's Step 6), reused here so a DAG can
     register its own derived output the same way a Track 2/3 script would.
     A plain function, not a @task — called from inside a DAG task body."""
     properties = {"name": name, "contenttype": content_type}

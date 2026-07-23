@@ -5,7 +5,7 @@ Each participant runs this on their own machine.
 ## Configure
 
 ```bash
-cd participant/scripts
+cd participant
 cp .env.template .env
 ```
 
@@ -15,6 +15,9 @@ Edit `.env` and set:
 - `PARTICIPANT_NAME` — your team name
 
 ## Start the stack
+
+`docker compose` automatically loads `participant/.env`, so the `MY_HOST` and
+`PARTICIPANT_NAME` you set above are picked up — no `export` needed.
 
 ```bash
 cd participant
@@ -83,4 +86,4 @@ docker compose up -d
 
 ## Next steps
 
-Once setup is verified, proceed to [Task 1 — Register a dataset](task-01-register.md).
+Once setup is verified, proceed to [Task 2 — Register a dataset](task-02-register.md).

@@ -59,6 +59,7 @@ This should return a `dcat:Catalog` with the two datasets.
 | EDC Control | 20003 | Internal control plane       |
 | RustFS API  | 9000  | S3-compatible storage        |
 | RustFS UI   | 9001  | Storage web console          |
+| Airflow     | 20006 | DataOps DAGs (`airflow` / `airflow`) |
 
 ## Adding more datasets
 

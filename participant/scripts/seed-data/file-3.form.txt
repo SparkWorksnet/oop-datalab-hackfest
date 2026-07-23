@@ -1,0 +1,82 @@
+================================================================================
+Dataset Submission Portal — values to fill in for file-3.csv
+Task 3 "Bring Your Own Data"  ·  http://<MY_HOST>:21000/api/catalog  →  "+ Submit Dataset"
+================================================================================
+
+This file describes what to type into each step of the 4-step submission wizard
+when uploading file-3.csv (in this same folder).
+
+Source dataset: "Benchmarking on Microservices Configurations and the Impact on
+the Performance in Cloud Native Environments" — EURECOM 5G testbed.
+file-3.csv is the *Python web server* performance distribution.
+DOI: 10.5281/zenodo.6907619  ·  Licence: CC BY 4.0
+Catalogue: https://catalogue.dspace.sparkworks.net/datasets/53ba2f86-7f06-4324-b168-4cba63ea1272
+
+--------------------------------------------------------------------------------
+STEP 1 · METADATA
+--------------------------------------------------------------------------------
+
+Basic Information (mandatory)
+  Title        : Python Web Server Performance Measurements
+  Description  : CPU and memory consumption measurements for the Python web server microservice under varying workloads and configurations, generated on the EURECOM 5G testbed to benchmark cloud-native microservice performance.
+  Publisher    : EURECOM
+  Contact      : EURECOM Communication Systems Department, contact@example.com
+  Licence      : CC BY 4.0  (https://creativecommons.org/licenses/by/4.0/)
+  Keywords     : microservices, Python web server, cloud-native, CPU consumption, memory consumption, containerisation, NFV, performance, workload, benchmarking, 5G core
+
+Dataset Details (recommended)
+  Temporal coverage : 2022-01-01 to 2022-07-19
+  Collection method : Controlled benchmarking on the EURECOM 5G testbed (Sophia Antipolis, France)
+  Dataset Columns   : auto-filled from the CSV header in Step 2 — leave as detected. Full list (16): time, ram_limit, cpu_limit, ram_usage, cpu_usage, n, c, lat50, lat66, lat75, lat80, lat90, lat95, lat98, lat99, lat100
+  Provenance        : Generated at the EURECOM 5G testbed through controlled benchmarking experiments on cloud-native microservice deployments. Published at LCN 2022 and deposited on Zenodo.
+  (Network technology / frequency band: not applicable — leave blank. This is a
+   compute/microservice benchmark, not a RAN measurement.)
+
+Additional Information (optional)
+  Existing DOI      : 10.5281/zenodo.6907619
+  Access rights     : public
+  Related publication: https://doi.org/10.5281/zenodo.6907619
+  Contains PII      : No   (required declaration)
+
+--------------------------------------------------------------------------------
+STEP 2 · DATA
+--------------------------------------------------------------------------------
+
+  Choose "Upload files" and select file-3.csv from this folder
+  (participant/scripts/seed-data/file-3.csv).
+
+  The portal auto-detects the 16 columns and previews the first 5 rows.
+  Detected column types (verify in the preview):
+    time       int      (Unix timestamp, e.g. 1636467153)
+    ram_limit  str      (e.g. "75M")
+    cpu_limit  float    (e.g. 0.5)
+    ram_usage  float    (e.g. 43921408.0)
+    cpu_usage  float    (e.g. 0.064585)
+    n          int      (requests, e.g. 100)
+    c          int      (concurrency, e.g. 1)
+    lat50 … lat100  int (latency percentiles in microseconds)
+
+--------------------------------------------------------------------------------
+STEP 3 · QUALITY CHECKS
+--------------------------------------------------------------------------------
+
+  Table-Level:
+    ExpectTableRowCountToBeBetween          → min 1, max (optional; file has 15308 rows)
+    ExpectTableColumnsToMatchOrderedList    → keep detected order
+
+  Per-Column (auto-generated, leave enabled):
+    ExpectColumnToExist / ExpectColumnValuesToNotBeNull / ExpectColumnValuesToBeOfType
+    for all 16 columns.
+
+  Suggested Additional Column Checks:
+    ExpectColumnValuesToBeBetween  on cpu_usage   → min 0, max 1
+    ExpectColumnValuesToBeBetween  on lat50       → min 0
+    ExpectColumnValuesToBeInSet    on cpu_limit   → {0.5}   (adjust if other limits appear)
+
+--------------------------------------------------------------------------------
+STEP 4 · REVIEW AND SUBMIT
+--------------------------------------------------------------------------------
+
+  Review everything, then Submit. The portal uploads file-3.csv to RustFS
+  (my-datasets bucket), registers it as an EDC asset with the MAP metadata
+  above, and creates the open policy + contract. Note the returned asset ID.
